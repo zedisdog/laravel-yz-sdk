@@ -1,0 +1,29 @@
+{
+    "name": "dezsidog/yz-sdk",
+    "description": "有赞sdk",
+    "license": "WTFPL",
+    "authors": [
+        {
+            "name": "zed",
+            "email": "zedsmail@163.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1",
+        "laravel/framework": "^5.5",
+        "xu42/open-sdk": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dezsidog\\YzSdk\\": "src/",
+            "Dezsidog\\YzSdk\\Test\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Dezsidog\\YzSdk\\ServiceProvider"
+            ]
+        }
+    }
+}
