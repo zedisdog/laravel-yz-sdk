@@ -9,6 +9,9 @@ declare(strict_types=1);
 namespace Dezsidog\YzSdk;
 
 
+use Illuminate\Cache\CacheManager;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\Request;
 use Youzan\Open\Client;
 
 class YzOpenSdk
@@ -27,22 +30,31 @@ class YzOpenSdk
      * @var array
      */
     public $origin_data;
+
     /**
-     * @var \Closure
+     * @var Application
      */
-    public $refresh_callback;
+    public $app;
+
+    /**
+     * @var string
+     */
+    public $seller_id;
 
     /**
      * YzOpenSdk constructor.
+     * @param Application $app
      * @param null|string $access_token
      * @param null|string $refresh_token
-     * @throws \Exception
      */
-    public function __construct(?string $access_token = null, ?string $refresh_token = null, ?\Closure $refresh_callback = null)
+    public function __construct($app, ?string $access_token = null, ?string $refresh_token = null)
     {
         $this->access_token = $access_token;
         $this->refresh_token = $refresh_token;
-        $this->refresh_callback = $refresh_callback;
+        $this->app = $app;
+        if (!$this->access_token && !$this->refresh_token) {
+            $this->tryTokenCache();
+        }
     }
 
     /**
@@ -55,14 +67,20 @@ class YzOpenSdk
         if ($this->access_token) {
             return $this->access_token;
         }else{
+            /**
+             * todo: 这里没有确定
+             */
             $keys['redirect_uri'] = \URL::to(config('yz.callback'));
 
+            // 如果有refresh_token就直接刷新
+            // 没有refresh_token就跳转授权
             if ($this->refresh_token) {
                 $type = 'refresh_token';
                 $keys['refresh_token'] = $this->refresh_token;
             }else{
+                $request = $this->app->make('request');
                 $type = 'oauth';
-                $keys['code'] = \Request::input('code');
+                $keys['code'] = $request->input('code');
             }
 
             if (
@@ -73,9 +91,9 @@ class YzOpenSdk
 
             /*
              * [
-                "access_token" => "9b7c7f882f033afa9bfc7070a0951f60"
+                "access_token" => "9b7c7f882f033afa9bfc7070a0951f60" (一般是7天)
                 "expires_in" => 604800
-                "refresh_token" => "aab315a848dd34088512fc536ffe6593"
+                "refresh_token" => "aab315a848dd34088512fc536ffe6593" (一般是28天)
                 "scope" => "multi_store shop item trade logistics coupon_advanced user pay_qrcode trade_virtual reviews item_category storage retail_goods"
                 "token_type" => "Bearer"
                 ]
@@ -85,9 +103,17 @@ class YzOpenSdk
             $this->origin_data = $result;
             $this->access_token = $result['access_token'];
             $this->refresh_token = $result['refresh_token'];
-//            \Log::info('result', $result);
-            if (is_callable($this->refresh_callback)) {
-                ($this->refresh_callback)($this);
+
+            /**
+             * @var CacheManager $cache
+             */
+            $cache = $this->app->make('cache');
+            if ($this->seller_id) {
+                $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
+                $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
+            } else {
+                $cache->put('yz_access_token', $this->access_token, $result['expires_in']/60);
+                $cache->put('yz_refresh_token', $this->refresh_token, 60 * 24 * 28);
             }
 
             return $result['access_token'];
@@ -232,9 +258,33 @@ class YzOpenSdk
         return $result['response']['trade'];
     }
 
-    public function setToken($access_token, $refresh_token)
+    public function setSellerId(string $seller_id)
     {
-        $this->access_token = $access_token;
-        $this->refresh_callback = $refresh_token;
+        $this->seller_id = $seller_id;
+        $this->tryTokenCache();
+    }
+
+    private function tryTokenCache()
+    {
+        /**
+         * @var Application $app
+         * @var Request $request
+         * @var CacheManager $cache
+         */
+        $request = $app->make('request');
+        $cache = $app->make('cache');
+
+        if ($request->has('kdt_id')) {
+            $this->seller_id = $request->input('kdt_id');
+        }
+
+        // 先尝试取之前的yz token
+        if ($this->seller_id) {
+            $this->access_token = $cache->tags('yz_seller_' . $this->seller_id)->get('access_token');
+            $this->refresh_token = $cache->tags('yz_seller_' . $this->seller_id)->get('refresh_token');
+        } else {
+            $this->access_token = $cache->get('yz_access_token');
+            $this->refresh_token = $cache->get('yz_refresh_token');
+        }
     }
 }

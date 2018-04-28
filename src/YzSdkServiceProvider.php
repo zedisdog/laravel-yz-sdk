@@ -9,30 +9,32 @@
 namespace Dezsidog\YzSdk;
 
 
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 
 class YzSdkServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->singleton(YzOpenSdk::class,function(){
-            // 有赞商家id
-            $seller_id = \Request::input('kdt_id');
-
-            if ($seller_id) {
-                // 先尝试取之前的yz token
-                $access_token = \Cache::tags('yz_seller_'.$seller_id)->get('access_token');
-                $refresh_token = \Cache::tags('yz_seller_'.$seller_id)->get('refresh_token');
-                return new YzOpenSdk($access_token, $refresh_token);
-            }else{
-                return new YzOpenSdk();
-            }
+        $this->app->singleton(YzOpenSdk::class,function($app){
+            return new YzOpenSdk($app);
         });
     }
 
     public function boot()
     {
-
+        /**
+         * @var Router $router
+         */
+        $router = $this->app->make('router');
+        if (config('yz.callback.class')) {
+            $router->prefix(config('yz.callback.prefix', 'api'))
+                ->middleware(config('yz.callback.middlewares', 'api'))
+                ->any(config('yz.callback.url', 'yz-callback'), config('callback.class'));
+        }
+        $router->prefix(config('yz.hook.prefix', 'api'))
+            ->middleware(config('yz.hook.middlewares'), 'api')
+            ->any(config('yz.hook.url'), 'yz-hook', config('hook.action'));
     }
 
     public function provides()
