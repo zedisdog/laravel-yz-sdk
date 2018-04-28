@@ -323,12 +323,11 @@ class YzOpenSdk
     private function tryTokenCache()
     {
         /**
-         * @var Application $app
          * @var Request $request
          * @var CacheManager $cache
          */
-        $request = $app->make('request');
-        $cache = $app->make('cache');
+        $request = $this->app->make('request');
+        $cache = $this->app->make('cache');
 
         if ($request->has('kdt_id')) {
             $this->seller_id = $request->input('kdt_id');
