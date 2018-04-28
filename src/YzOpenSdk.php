@@ -373,4 +373,22 @@ class YzOpenSdk
 
         return $result['response'];
     }
+
+    /**
+     * 获取赠品
+     * @param array $fields
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getPresents(array $fields = [], string $version='3.0.0'): ?array
+    {
+        $method = 'youzan.ump.presents.ongoing.all';
+        $params = [];
+        if (!empty($fields)) {
+            $params['fields'] = implode(',', $fields);
+        }
+
+        return $this->post($method, $version, $params)['presents'];
+    }
 }
