@@ -22,7 +22,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Dezsidog\\YzSdk\\ServiceProvider"
+                "Dezsidog\\YzSdk\\YzSdkServiceProvider"
             ]
         }
     }
