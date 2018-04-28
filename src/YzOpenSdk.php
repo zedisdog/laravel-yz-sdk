@@ -122,35 +122,29 @@ class YzOpenSdk
 
     /**
      * @param int $product_id
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getProduct(int $product_id): ?array
+    public function getProduct(int $product_id, $version='3.0.0'): ?array
     {
         $method = 'youzan.item.get';
-        $api_version = '3.0.0';
 
         $params = [
             'item_id' => $product_id,
         ];
 
-        $client = new Client($this->getToken());
-        $result = $client->post($method, $api_version, $params);
-        if (isset($result['response'])) {
-            return $result['response']['item'];
-        }else{
-            return null;
-        }
+        return $this->post($method, $version, $params);
     }
 
     /**
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getUserInfo(): ?array
+    public function getUserInfo($version = '3.0.0'): ?array
     {
         $method = 'youzan.shop.get';
-        $api_version = '3.0.0';
 
         /*
          * [
@@ -162,28 +156,22 @@ class YzOpenSdk
               ]
             ]
          */
-        $client = new Client($this->getToken());
-        $result = $client->post($method, $api_version);
-        if (isset($result['response'])) {
-            return $result['response'];
-        }else{
-            return null;
-        }
+        return $this->post($method, $version);
     }
 
     /**
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getType(): ?array
+    public function getType(string $version='3.0.0'): ?array
     {
         $method = 'youzan.itemcategories.get';
-        $api_version = '3.0.0';
 
-        $client = new Client($this->getToken());
-        $result = $client->post($method, $api_version);
-        if (isset($result['response']) && isset($result['response']['categories'])) {
-            return $result['response']['categories'];
+        $result = $this->post($method, $version);
+
+        if (isset($result) && isset($result['categories'])) {
+            return $result['categories'];
         }else{
             return null;
         }
@@ -224,38 +212,106 @@ class YzOpenSdk
     }
 
     /**
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getUserBasicInfo(): ?array
+    public function getUserBasicInfo($version = '3.0.0'): ?array
     {
         $method = 'youzan.shop.basic.get';
-        $api_version = '3.0.0';
 
+        return $this->get($method, $version);
+    }
+
+    /**
+     * @param string $method
+     * @param string $version
+     * @return mixed
+     * @throws \Exception
+     */
+    private function get(string $method, string $version)
+    {
         $client = new Client($this->getToken());
-        $result = $client->get($method, $api_version);
+        $result = $this->checkError($client->get($method, $version));
 
         return $result['response'];
     }
 
     /**
      * @param string $trade_id
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getTrade(string $trade_id): ?array
+    public function getTrade(string $trade_id, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.trade.get'; //要调用的api名称
-        $api_version = '3.0.0'; //要调用的api版本号
 
         $my_params = [
             'tid' => $trade_id,
         ];
 
-        $client = new Client($this->getToken());
-        $result = $client->post($method, $api_version, $my_params);
+        return $this->post($method, $version, $my_params)['trade'];
+    }
 
-        return $result['response']['trade'];
+    /**
+     * 向用户发送赠品
+     * @param string $activity_id 赠品活动id
+     * @param string $id 粉丝id或有赞id
+     * @param string $version 版本
+     * @return array|null
+     * @throws \Exception
+     */
+    public function givePresent(string $activity_id,string $id, $version='3.0.0'): ?array
+    {
+        $method = 'youzan.ump.present.give';
+
+        $params = [
+            'activity_id' => $activity_id
+        ];
+
+        if (strlen($id) == 28) {
+            $params['fans_id'] = $id;
+        } else {
+            $params['buyer_id'] = $id;
+        }
+
+        return $this->post($method, $version, $params);
+    }
+
+    /**
+     * @param int $points
+     * @param string $id
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function pointIncrease(int $points, string $id, string $version='3.0.1')
+    {
+        $method = 'youzan.crm.customer.points.increase';
+
+        $params = [
+            'points' => $points
+        ];
+
+        if (strlen($id) == 11) {
+            $params['mobile'] = $id;
+        }elseif (strlen($id) == 28) {
+            $params['open_user_id'] = $id;
+        } else {
+            $params['fans_id'] = $id;
+        }
+
+        $result = $this->post($method, $version, $params);
+
+        switch ($result['is_success']) {
+            case 'true':
+                return true;
+            case 'false':
+                return false;
+            default:
+                return false;
+        }
     }
 
     public function setSellerId(string $seller_id)
@@ -286,5 +342,35 @@ class YzOpenSdk
             $this->access_token = $cache->get('yz_access_token');
             $this->refresh_token = $cache->get('yz_refresh_token');
         }
+    }
+
+    /**
+     * 检查返回消息是否是错误消息
+     * 如果时错误消息, 抛出异常
+     * @param array $result
+     * @return array|null
+     */
+    private function checkError(array $result): ?array
+    {
+        if (isset($result['error_response'])) {
+            throw new \RuntimeException(json_encode($result));
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $method
+     * @param string $version
+     * @param array $params
+     * @return array|null
+     * @throws \Exception
+     */
+    private function post(string $method, string $version, array $params=[])
+    {
+        $client = new Client($this->getToken());
+        $result = $this->checkError($client->post($method, $version, $params));
+
+        return $result['response'];
     }
 }

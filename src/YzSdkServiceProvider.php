@@ -27,11 +27,11 @@ class YzSdkServiceProvider extends ServiceProvider
     {
         if ($this->app instanceof Application) {
             $this->publishes([
-                __DIR__.'config.php' => config_path('yz.php'),
+                __DIR__.'/config.php' => config_path('yz.php'),
             ]);
         }
 
-        $this->mergeConfigFrom(__DIR__.'config.php', 'yz');
+        $this->mergeConfigFrom(__DIR__.'/config.php', 'yz');
         /**
          * @var Router $router
          */
@@ -43,7 +43,7 @@ class YzSdkServiceProvider extends ServiceProvider
         }
         $router->prefix(config('yz.hook.prefix', 'api'))
             ->middleware(config('yz.hook.middlewares'), 'api')
-            ->any(config('yz.hook.url'), config('hook.action'));
+            ->any(config('yz.hook.url'), config('yz.hook.action'));
     }
 
     public function provides()
