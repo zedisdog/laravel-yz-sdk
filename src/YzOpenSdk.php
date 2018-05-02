@@ -165,7 +165,17 @@ class YzOpenSdk
               ]
             ]
          */
-        return $this->post($method, $version);
+        $result = $this->post($method, $version);
+
+        /**
+         * @var CacheManager $cache
+         */
+        $cache = $this->app->make('cache');
+        $this->seller_id = $result['id'];
+        $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
+        $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
+
+        return $result;
     }
 
     /**
