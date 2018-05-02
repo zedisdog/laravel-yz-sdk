@@ -22,4 +22,6 @@ return [
         'url' => 'yz-hook',
         'action' => '\Dezsidog\YzSdk\Http\HookController@handler'
     ],
+    'client_id' => "",
+    'client_secret' => ""
 ];

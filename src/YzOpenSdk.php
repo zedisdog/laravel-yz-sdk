@@ -98,7 +98,7 @@ class YzOpenSdk
                 "token_type" => "Bearer"
                 ]
              */
-            $result = (new \Youzan\Open\Token(config('youzan.client_id'), config('youzan.client_secret')))->getToken($type, $keys);
+            $result = (new \Youzan\Open\Token(config('yz.client_id'), config('yz.client_secret')))->getToken($type, $keys);
 
             $this->origin_data = $result;
             $this->access_token = $result['access_token'];
