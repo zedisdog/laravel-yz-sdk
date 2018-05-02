@@ -71,7 +71,7 @@ class YzOpenSdk
             /**
              * todo: 这里没有确定
              */
-            $keys['redirect_uri'] = \URL::to(config('yz.callback'));
+            $keys['redirect_uri'] = \URL::Route(config('yz.callback'));
 
             // 如果有refresh_token就直接刷新
             // 没有refresh_token就跳转授权
