@@ -9,7 +9,7 @@
 namespace Dezsidog\YzSdk;
 
 
-use Illuminate\Console\Application;
+use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
