@@ -12,6 +12,7 @@ namespace Dezsidog\YzSdk;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Youzan\Open\Client;
 
 class YzOpenSdk
@@ -101,6 +102,14 @@ class YzOpenSdk
             $result = (new \Youzan\Open\Token(config('yz.client_id'), config('yz.client_secret')))->getToken($type, $keys);
 
             $this->origin_data = $result;
+            if (!isset($result['access_token'])) {
+                $context = [
+                    'result' => $result,
+                    'type' => $type,
+                    'keys' => $keys
+                ];
+                Log::error('no access_token', $context);
+            }
             $this->access_token = $result['access_token'];
             $this->refresh_token = $result['refresh_token'];
 
