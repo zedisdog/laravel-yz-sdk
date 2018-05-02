@@ -327,6 +327,7 @@ class YzOpenSdk
     {
         $this->seller_id = $seller_id;
         $this->tryTokenCache();
+        return $this;
     }
 
     private function tryTokenCache()
