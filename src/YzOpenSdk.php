@@ -75,13 +75,16 @@ class YzOpenSdk
 
             // 如果有refresh_token就直接刷新
             // 没有refresh_token就跳转授权
-            if ($this->refresh_token) {
-                $type = 'refresh_token';
-                $keys['refresh_token'] = $this->refresh_token;
-            }else{
-                $request = $this->app->make('request');
+            /**
+             * @var Request $request
+             */
+            $request = $this->app->make('request');
+            if ($request->has('code')) {
                 $type = 'oauth';
                 $keys['code'] = $request->input('code');
+            }else{
+                $type = 'refresh_token';
+                $keys['refresh_token'] = $this->refresh_token;
             }
 
             if (
