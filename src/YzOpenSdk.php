@@ -150,6 +150,25 @@ class YzOpenSdk
     }
 
     /**
+     * @param $id
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getFollower($id, $version='3.0.0'): ?array
+    {
+        $method = 'youzan.users.weixin.follower.get';
+
+        if (strlen($id) == 28) {
+            $params['weixin_openid'] = $id;
+        } else {
+            $params['fans_id'] = $id;
+        }
+
+        return $this->post($method, $version, $params);
+    }
+
+    /**
      * @param string $version
      * @return array|null
      * @throws \Exception
