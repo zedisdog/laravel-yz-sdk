@@ -133,6 +133,25 @@ class YzOpenSdk
     }
 
     /**
+     * @param $fans_id
+     * @param $tags
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function addTags($fans_id, $tags, $version='3.0.0')
+    {
+        $method = 'youzan.users.weixin.follower.tags.add';
+
+        $params = [
+            'fans_id' => $fans_id,
+            'tags' => $tags
+        ];
+
+        return $this->post($method, $version, $params);
+    }
+
+    /**
      * @param int $product_id
      * @param string $version
      * @return array|null
