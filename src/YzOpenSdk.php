@@ -220,6 +220,21 @@ class YzOpenSdk
     }
 
     /**
+     * 清除token
+     * @param int|null $seller_id
+     */
+    public static function destroy(?int $seller_id = null)
+    {
+        if ($seller_id) {
+            \Cache::tags('yz_seller_'.$seller_id)->forget('access_token');
+            \Cache::tags('yz_seller_'.$seller_id)->forget('refresh_token');
+        } else {
+            \Cache::forget('yz_access_token');
+            \Cache::forget('yz_refresh_token');
+        }
+    }
+
+    /**
      * @param string $version
      * @return array|null
      * @throws \Exception
