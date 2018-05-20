@@ -18,5 +18,6 @@ return [
         'action' => '\Dezsidog\YzSdk\Http\HookController@handler'
     ],
     'client_id' => "",
-    'client_secret' => ""
+    'client_secret' => "",
+    'multi_seller' => true,
 ];
