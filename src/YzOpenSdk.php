@@ -168,7 +168,7 @@ class YzOpenSdk
             'item_id' => $product_id,
         ];
 
-        return $this->post($method, $version, $params);
+        return $this->post($method, $version, $params, 'response.item');
     }
 
     /**
@@ -182,13 +182,13 @@ class YzOpenSdk
     {
         $method = 'youzan.users.weixin.follower.get';
 
-        if (strlen($id) == 28) {
+        if (strlen(strval($id)) == 28) {
             $params['weixin_openid'] = $id;
         } else {
             $params['fans_id'] = $id;
         }
 
-        return $this->post($method, $version, $params);
+        return $this->post($method, $version, $params, 'response.user');
     }
 
     /**
@@ -287,13 +287,7 @@ class YzOpenSdk
     {
         $method = 'youzan.itemcategories.get';
 
-        $result = $this->post($method, $version);
-
-        if (isset($result) && isset($result['categories'])) {
-            return $result['categories'];
-        }else{
-            return null;
-        }
+        return $this->post($method, $version, [], 'response.categories');
     }
 
     /**
@@ -467,7 +461,7 @@ class YzOpenSdk
         }
     }
 
-    public function setSellerId(string $seller_id)
+    public function setSellerId($seller_id)
     {
         $this->seller_id = $seller_id;
         $this->tryTokenCache();
