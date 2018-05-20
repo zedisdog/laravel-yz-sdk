@@ -12,6 +12,7 @@ namespace Dezsidog\YzSdk;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Youzan\Open\Client;
 
 class YzOpenSdk
@@ -58,6 +59,7 @@ class YzOpenSdk
     }
 
     /**
+     * 获取access_token,如果没有就去获取或者刷新access_token
      * @return string
      * @throws \Exception
      */
@@ -67,20 +69,19 @@ class YzOpenSdk
         if ($this->access_token) {
             return $this->access_token;
         }else{
-            /**
-             * todo: 这里没有确定
-             */
-            $keys['redirect_uri'] = \URL::to(config('yz.callback'));
+            $keys['redirect_uri'] = \URL::Route(config('yz.callback'));
 
-            // 如果有refresh_token就直接刷新
-            // 没有refresh_token就跳转授权
-            if ($this->refresh_token) {
-                $type = 'refresh_token';
-                $keys['refresh_token'] = $this->refresh_token;
-            }else{
-                $request = $this->app->make('request');
+            // 如果有code就去获取，没有就尝试通过refresh_token刷新access_token
+            /**
+             * @var Request $request
+             */
+            $request = $this->app->make('request');
+            if ($request->has('code')) {
                 $type = 'oauth';
                 $keys['code'] = $request->input('code');
+            }else{
+                $type = 'refresh_token';
+                $keys['refresh_token'] = $this->refresh_token;
             }
 
             if (
@@ -98,9 +99,16 @@ class YzOpenSdk
                 "token_type" => "Bearer"
                 ]
              */
-            $result = (new \Youzan\Open\Token(config('youzan.client_id'), config('youzan.client_secret')))->getToken($type, $keys);
-
+            $result = (new \Youzan\Open\Token(config('yz.client_id'), config('yz.client_secret')))->getToken($type, $keys);
             $this->origin_data = $result;
+            if (!isset($result['access_token'])) {
+                $context = [
+                    'result' => $result,
+                    'type' => $type,
+                    'keys' => $keys
+                ];
+                Log::error('no access_token', $context);
+            }
             $this->access_token = $result['access_token'];
             $this->refresh_token = $result['refresh_token'];
 
@@ -108,9 +116,14 @@ class YzOpenSdk
              * @var CacheManager $cache
              */
             $cache = $this->app->make('cache');
-            if ($this->seller_id) {
-                $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
-                $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
+            if (config('multi_seller') && $this->seller_id) {
+                if (method_exists($cache, 'tags')) {
+                    $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
+                    $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
+                } else {
+                    $cache->put('yz_seller_' . $this->seller_id . '_access_token', $this->access_token, $result['expires_in']/60);
+                    $cache->put('yz_seller_' . $this->seller_id . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
+                }
             } else {
                 $cache->put('yz_access_token', $this->access_token, $result['expires_in']/60);
                 $cache->put('yz_refresh_token', $this->refresh_token, 60 * 24 * 28);
@@ -121,36 +134,83 @@ class YzOpenSdk
     }
 
     /**
-     * @param int $product_id
+     * 向用户添加tag
+     * @param $fans_id
+     * @param $tags
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getProduct(int $product_id): ?array
+    public function addTags(int $fans_id, string $tags, $version='3.0.0')
+    {
+        $method = 'youzan.users.weixin.follower.tags.add';
+
+        $params = [
+            'fans_id' => $fans_id,
+            'tags' => $tags
+        ];
+
+        return $this->post($method, $version, $params);
+    }
+
+    /**
+     * 获取单个商品信息
+     * @param int $product_id
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getProduct(int $product_id, string $version='3.0.0'): ?array
     {
         $method = 'youzan.item.get';
-        $api_version = '3.0.0';
 
         $params = [
             'item_id' => $product_id,
         ];
 
-        $client = new Client($this->getToken());
-        $result = $client->post($method, $api_version, $params);
-        if (isset($result['response'])) {
-            return $result['response']['item'];
-        }else{
-            return null;
-        }
+        return $this->post($method, $version, $params);
     }
 
     /**
+     * 通过 open_id 或者 fans_id 获取用户信息
+     * @param $id
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getUserInfo(): ?array
+    public function getFollower($id, string $version='3.0.0'): ?array
+    {
+        $method = 'youzan.users.weixin.follower.get';
+
+        if (strlen($id) == 28) {
+            $params['weixin_openid'] = $id;
+        } else {
+            $params['fans_id'] = $id;
+        }
+
+        return $this->post($method, $version, $params);
+    }
+
+    /**
+     * 获取店铺信息
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getShopInfo(string $version = '3.0.0'): ?array
+    {
+        return $this->getUserInfo($version);
+    }
+    /**
+     * 获取店铺信息
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     * @deprecated 1.0.0
+     */
+    public function getUserInfo($version = '3.0.0'): ?array
     {
         $method = 'youzan.shop.get';
-        $api_version = '3.0.0';
 
         /*
          * [
@@ -162,129 +222,332 @@ class YzOpenSdk
               ]
             ]
          */
-        $client = new Client($this->getToken());
-        $result = $client->post($method, $api_version);
-        if (isset($result['response'])) {
-            return $result['response'];
-        }else{
-            return null;
-        }
-    }
+        $result = $this->post($method, $version);
 
-    /**
-     * @return array|null
-     * @throws \Exception
-     */
-    public function getType(): ?array
-    {
-        $method = 'youzan.itemcategories.get';
-        $api_version = '3.0.0';
-
-        $client = new Client($this->getToken());
-        $result = $client->post($method, $api_version);
-        if (isset($result['response']) && isset($result['response']['categories'])) {
-            return $result['response']['categories'];
-        }else{
-            return null;
-        }
-    }
-
-    /**
-     * @return array|null
-     * @throws \Exception
-     */
-    public function getProducts(): ?array
-    {
-        $methods = [
-            [
-                'method' => 'youzan.items.onsale.get',
-                'api_version' => '3.0.0'
-            ],
-            [
-                'method' => 'youzan.items.inventory.get',
-                'api_version' => '3.0.0'
-            ],
-        ];
-
-        $products = [];
-        $client = new Client($this->getToken());
-
-        $params = [
-            'page_size' => 300
-        ];
-
-        foreach ($methods as $method) {
-            $result = $client->post($method['method'],$method['api_version'], $params);
-            if (!empty($result['response']['items'])) {
-                $products = array_merge($products,$result['response']['items']);
+        if (config('multi_seller')) {
+            /**
+             * @var CacheManager $cache
+             */
+            $cache = $this->app->make('cache');
+            $this->seller_id = $result['id'];
+            if (method_exists($cache, 'tags')) {
+                $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
+                $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
+            } else {
+                $cache->put('yz_seller_' . $this->seller_id . '_access_token', $this->access_token, $result['expires_in']/60);
+                $cache->put('yz_seller_' . $this->seller_id . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
             }
         }
 
-        return $products;
+        return $result;
     }
 
     /**
+     * 清除token
+     * @param int|null $seller_id
+     */
+    public static function destroy(?int $seller_id = null)
+    {
+        /**
+         * @var CacheManager $cache
+         */
+        $cache = app()->make('cache');
+        if ($seller_id) {
+            if (method_exists($cache, 'tags')) {
+                $cache->tags('yz_seller_' . $seller_id)->forget('access_token');
+                $cache->tags('yz_seller_' . $seller_id)->forget('refresh_token');
+            } else {
+                $cache->forget('yz_seller_' . $seller_id . '_access_token');
+                $cache->forget('yz_seller_' . $seller_id . '_refresh_token');
+            }
+        } else {
+            $cache->forget('yz_access_token');
+            $cache->forget('yz_refresh_token');
+        }
+    }
+
+    /**
+     * 获取商品类目列表
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getUserBasicInfo(): ?array
+    public function getItemCategories(string $version='3.0.0'): ?array
+    {
+        return $this->getType($version);
+    }
+    /**
+     * 获取商品类目列表
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     * @deprecated 1.0.0
+     */
+    public function getType(string $version='3.0.0'): ?array
+    {
+        $method = 'youzan.itemcategories.get';
+
+        $result = $this->post($method, $version);
+
+        if (isset($result) && isset($result['categories'])) {
+            return $result['categories'];
+        }else{
+            return null;
+        }
+    }
+
+    /**
+     * 获取在销售的商品
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getOnSaleItems(array $params = ['page_size' => 300], string $version = '3.0.0')
+    {
+        $method = 'youzan.items.onsale.get';
+
+        return $this->post($method, $version, $params, 'response.items');
+    }
+
+    /**
+     * 获取仓库中的商品
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getInventoryItems(array $params = ['page_size' => 300], string $version = '3.0.0')
+    {
+        $method = 'youzan.items.inventory.get';
+        return $this->post($method, $version, $params, 'response.items');
+    }
+
+    /**
+     * 获取所有商品，包括上架的和仓库中的
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getProducts(array $params = ['page_size' => 300], string $version='3.0.0'): ?array
+    {
+        if (isset($params['banner'])) {
+            throw new \InvalidArgumentException('method getProduct is not supported param banner');
+        }
+        return array_merge($this->getInventoryItems($params, $version), $this->getOnSaleItems($params, $version));
+    }
+
+    /**
+     * 获取店铺基础信息
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getShopBaseInfo($version = '3.0.0'): ?array
+    {
+        return $this->getUserBasicInfo($version);
+    }
+
+    /**
+     * 获取店铺基础信息
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     * @deprecated 1.0.0
+     */
+    public function getUserBasicInfo($version = '3.0.0'): ?array
     {
         $method = 'youzan.shop.basic.get';
-        $api_version = '3.0.0';
 
-        $client = new Client($this->getToken());
-        $result = $client->get($method, $api_version);
-
-        return $result['response'];
+        return $this->get($method, $version);
     }
 
     /**
+     * @param string $method
+     * @param string $version
+     * @param string $response_field
+     * @return mixed
+     * @throws \Exception
+     */
+    private function get(string $method, string $version, $response_field = 'response')
+    {
+        $client = new Client($this->getToken());
+        $result = $this->checkError($client->get($method, $version));
+
+        return array_get($result, $response_field);
+    }
+
+    /**
+     * 获取交易信息
      * @param string $trade_id
+     * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function getTrade(string $trade_id): ?array
+    public function getTrade(string $trade_id, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.trade.get'; //要调用的api名称
-        $api_version = '3.0.0'; //要调用的api版本号
 
         $my_params = [
             'tid' => $trade_id,
         ];
 
-        $client = new Client($this->getToken());
-        $result = $client->post($method, $api_version, $my_params);
+        switch ($version) {
+            case '3.0.0':
+                $response_field = 'response.trade';
+                break;
+            case '4.0.0':
+                $response_field = 'response';
+                break;
+            default:
+                throw new \InvalidArgumentException('unknown version ' . $version);
+        }
 
-        return $result['response']['trade'];
+        return $this->post($method, $version, $my_params, $response_field);
+    }
+
+    /**
+     * 向用户发送赠品
+     * @param string $activity_id 赠品活动id
+     * @param string $id 粉丝id或有赞id
+     * @param string $version 版本
+     * @return array|null
+     * @throws \Exception
+     */
+    public function givePresent(string $activity_id, string $id, $version='3.0.0'): ?array
+    {
+        $method = 'youzan.ump.present.give';
+
+        $params = [
+            'activity_id' => $activity_id
+        ];
+
+        if (strlen($id) == 28) {
+            $params['fans_id'] = $id;
+        } else {
+            $params['buyer_id'] = $id;
+        }
+
+        return $this->post($method, $version, $params);
+    }
+
+    /**
+     * @param int $points
+     * @param string $id
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function pointIncrease(int $points, string $id, string $version='3.0.1')
+    {
+        $method = 'youzan.crm.customer.points.increase';
+
+        $params = [
+            'points' => $points
+        ];
+
+        if (strlen($id) == 11) {
+            $params['mobile'] = $id;
+        }elseif (strlen($id) == 28) {
+            $params['fans_id'] = $id;
+        } else {
+            $params['open_user_id'] = $id;
+        }
+
+        $result = $this->post($method, $version, $params);
+
+        switch ($result['is_success']) {
+            case 'true':
+                return true;
+            case 'false':
+                return false;
+            default:
+                return false;
+        }
     }
 
     public function setSellerId(string $seller_id)
     {
         $this->seller_id = $seller_id;
         $this->tryTokenCache();
+        return $this;
     }
 
     private function tryTokenCache()
     {
         /**
-         * @var Application $app
          * @var Request $request
          * @var CacheManager $cache
          */
-        $request = $app->make('request');
-        $cache = $app->make('cache');
+        $request = $this->app->make('request');
+        $cache = $this->app->make('cache');
 
         if ($request->has('kdt_id')) {
             $this->seller_id = $request->input('kdt_id');
         }
 
         // 先尝试取之前的yz token
-        if ($this->seller_id) {
-            $this->access_token = $cache->tags('yz_seller_' . $this->seller_id)->get('access_token');
-            $this->refresh_token = $cache->tags('yz_seller_' . $this->seller_id)->get('refresh_token');
+        if (config('multi_seller') && $this->seller_id) {
+            if (method_exists($cache, 'tags')) {
+                $this->access_token = $cache->tags('yz_seller_' . $this->seller_id)->get('access_token');
+                $this->refresh_token = $cache->tags('yz_seller_' . $this->seller_id)->get('refresh_token');
+            } else {
+                $this->access_token = $cache->get('yz_seller_' . $this->seller_id . '_access_token');
+                $this->refresh_token = $cache->get('yz_seller_' . $this->seller_id . '_refresh_token');
+            }
         } else {
             $this->access_token = $cache->get('yz_access_token');
             $this->refresh_token = $cache->get('yz_refresh_token');
         }
+    }
+
+    /**
+     * 检查返回消息是否是错误消息
+     * 如果是错误消息, 抛出异常
+     * @param array $result
+     * @return array|null
+     */
+    private function checkError(array $result): ?array
+    {
+        if (isset($result['error_response'])) {
+            throw new \RuntimeException(json_encode($result));
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $method
+     * @param string $version
+     * @param array $params
+     * @param string $response_field
+     * @return array|null
+     * @throws \Exception
+     */
+    private function post(string $method, string $version, array $params=[], string $response_field = 'response')
+    {
+        $client = new Client($this->getToken());
+        $result = $this->checkError($client->post($method, $version, $params));
+
+        return array_get($result, $response_field);
+    }
+
+    /**
+     * 获取进行中的赠品
+     * @param array $fields
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getPresents(array $fields = [], string $version='3.0.0'): ?array
+    {
+        $method = 'youzan.ump.presents.ongoing.all';
+        $params = [];
+        if (!empty($fields)) {
+            $params['fields'] = implode(',', $fields);
+        }
+
+        return $this->post($method, $version, $params, 'response.presents');
     }
 }

@@ -9,7 +9,9 @@
 namespace Dezsidog\YzSdk;
 
 
+use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 
 class YzSdkServiceProvider extends ServiceProvider
@@ -23,6 +25,13 @@ class YzSdkServiceProvider extends ServiceProvider
 
     public function boot()
     {
+        if ($this->app instanceof Application) {
+            $this->publishes([
+                __DIR__.'/config.php' => config_path('yz.php'),
+            ]);
+        }
+
+        $this->mergeConfigFrom(__DIR__.'/config.php', 'yz');
         /**
          * @var Router $router
          */
@@ -34,7 +43,7 @@ class YzSdkServiceProvider extends ServiceProvider
         }
         $router->prefix(config('yz.hook.prefix', 'api'))
             ->middleware(config('yz.hook.middlewares'), 'api')
-            ->any(config('yz.hook.url'), 'yz-hook', config('hook.action'));
+            ->any(config('yz.hook.url'), config('yz.hook.action'));
     }
 
     public function provides()
