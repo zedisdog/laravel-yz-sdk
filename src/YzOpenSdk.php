@@ -428,7 +428,7 @@ class YzOpenSdk
 
     /**
      * @param int $points
-     * @param string $id
+     * @param string $id mobile or fans_id
      * @param string $version
      * @return bool
      * @throws \Exception
@@ -443,10 +443,8 @@ class YzOpenSdk
 
         if (strlen($id) == 11) {
             $params['mobile'] = $id;
-        }elseif (strlen($id) == 28) {
+        }else {
             $params['fans_id'] = $id;
-        } else {
-            $params['open_user_id'] = $id;
         }
 
         $result = $this->post($method, $version, $params);
