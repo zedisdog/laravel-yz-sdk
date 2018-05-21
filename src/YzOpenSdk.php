@@ -404,12 +404,12 @@ class YzOpenSdk
     /**
      * 向用户发送赠品
      * @param string $activity_id 赠品活动id
-     * @param string $id 粉丝id或有赞id
+     * @param string $fans_id 粉丝id或有赞id
      * @param string $version 版本
      * @return array|null
      * @throws \Exception
      */
-    public function givePresent(string $activity_id, string $id, $version='3.0.0'): ?array
+    public function givePresent(string $activity_id, string $fans_id, $version='3.0.0'): ?array
     {
         $method = 'youzan.ump.present.give';
 
@@ -417,11 +417,7 @@ class YzOpenSdk
             'activity_id' => $activity_id
         ];
 
-        if (strlen($id) == 28) {
-            $params['fans_id'] = $id;
-        } else {
-            $params['buyer_id'] = $id;
-        }
+        $params['fans_id'] = $fans_id;
 
         return $this->post($method, $version, $params);
     }
