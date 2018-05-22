@@ -11,7 +11,7 @@ namespace Dezsidog\YzSdk\Http;
 
 use Dezsidog\YzSdk\Events\ReceivedYzMessage;
 use Dezsidog\YzSdk\Events\redis\ReceivedYzMessage as QueueReceivedYzMessage;
-use Dezsidog\YzSdk\Message;
+use Dezsidog\YzSdk\Message\MessageFactory;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -19,7 +19,7 @@ class HookController extends Controller
 {
     public function handler(Request $request)
     {
-        $message = new Message($request);
+        $message = MessageFactory::create($request->input());
         if (config('yz.hook.event_should_queue')) {
             event(new QueueReceivedYzMessage($message));
         } else {

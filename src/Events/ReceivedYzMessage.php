@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace Dezsidog\YzSdk\Events;
 
-use Dezsidog\YzSdk\Message;
+use Dezsidog\YzSdk\Message\BaseMessage;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -13,16 +13,16 @@ class ReceivedYzMessage
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * @var Message
+     * @var BaseMessage
      */
     public $message;
 
     /**
      * Create a new event instance.
      *
-     * @param Message $message
+     * @param BaseMessage $message
      */
-    public function __construct(Message $message)
+    public function __construct(BaseMessage $message)
     {
         $this->message = $message;
     }

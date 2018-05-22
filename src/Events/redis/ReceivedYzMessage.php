@@ -9,7 +9,7 @@
 namespace Dezsidog\YzSdk\Events\redis;
 
 
-use Dezsidog\YzSdk\Message;
+use Dezsidog\YzSdk\Message\BaseMessage;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,16 +21,16 @@ class ReceivedYzMessage implements ShouldQueue
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * @var Message
+     * @var BaseMessage
      */
     public $message;
 
     /**
      * Create a new event instance.
      *
-     * @param Message $message
+     * @param BaseMessage $message
      */
-    public function __construct(Message $message)
+    public function __construct(BaseMessage $message)
     {
         $this->message = $message;
     }
