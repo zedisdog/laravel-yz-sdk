@@ -9,8 +9,6 @@
 namespace Dezsidog\YzSdk\Message;
 
 
-use Dezsidog\YzSdk\TradeOrderState;
-
 class MessageFactory
 {
     public static function create($data)
@@ -18,6 +16,8 @@ class MessageFactory
         switch ($data['type']) {
             case 'TRADE_ORDER_STATE':
                 return new TradeOrderState($data);
+            case 'COUPON_PROMOTION':
+                return new Coupon($data);
             default:
                 throw new \InvalidArgumentException('unsupported message');
         }

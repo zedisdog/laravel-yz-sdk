@@ -15,6 +15,21 @@ abstract class BaseMessage
 {
     use HasAttributes { setAttribute as baseSetAttribute; }
 
+    public function getDateFormat()
+    {
+        return 'Y-m-d H:i:s';
+    }
+
+    public function getDates()
+    {
+        return $this->dates;
+    }
+
+    public function getCasts()
+    {
+        return $this->casts;
+    }
+
     public function __construct(array $data = [])
     {
         $this->fill($data);
@@ -33,7 +48,7 @@ abstract class BaseMessage
 
     public function __get($name)
     {
-        $this->getAttribute($name);
+        return $this->getAttribute($name);
     }
 
     public function fill($data)
