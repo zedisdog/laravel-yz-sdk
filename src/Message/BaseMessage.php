@@ -11,6 +11,11 @@ namespace Dezsidog\YzSdk\Message;
 
 use Illuminate\Database\Eloquent\Concerns\HasAttributes;
 
+/**
+ * Class BaseMessage
+ * @package Dezsidog\YzSdk\Message
+ * @property-read string $type 消息类型
+ */
 abstract class BaseMessage
 {
     use HasAttributes { setAttribute as baseSetAttribute; }
