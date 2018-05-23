@@ -116,8 +116,8 @@ class YzOpenSdk
              * @var CacheManager $cache
              */
             $cache = $this->app->make('cache');
-            if (config('multi_seller') && $this->seller_id) {
-                if (method_exists($cache, 'tags')) {
+            if (config('yz.multi_seller') && $this->seller_id) {
+                if ($cache->getDefaultDriver() == 'redis') {
                     $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
                     $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
                 } else {
@@ -224,13 +224,13 @@ class YzOpenSdk
          */
         $result = $this->post($method, $version);
 
-        if (config('multi_seller')) {
+        if (config('yz.multi_seller')) {
             /**
              * @var CacheManager $cache
              */
             $cache = $this->app->make('cache');
             $this->seller_id = $result['id'];
-            if (method_exists($cache, 'tags')) {
+            if ($cache->getDefaultDriver() == 'redis') {
                 $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
                 $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
             } else {
@@ -253,7 +253,7 @@ class YzOpenSdk
          */
         $cache = app()->make('cache');
         if ($seller_id) {
-            if (method_exists($cache, 'tags')) {
+            if ($cache->getDefaultDriver() == 'redis') {
                 $cache->tags('yz_seller_' . $seller_id)->forget('access_token');
                 $cache->tags('yz_seller_' . $seller_id)->forget('refresh_token');
             } else {
@@ -429,6 +429,9 @@ class YzOpenSdk
      */
     public function hasToken($seller_id = null)
     {
+        if (!$seller_id) {
+            $seller_id = $this->seller_id;
+        }
         /**
          * @var CacheManager $cache
          */
@@ -498,8 +501,8 @@ class YzOpenSdk
         }
 
         // 先尝试取之前的yz token
-        if (config('multi_seller') && $this->seller_id) {
-            if (method_exists($cache, 'tags')) {
+        if (config('yz.multi_seller') && $this->seller_id) {
+            if ($cache->getDefaultDriver() == 'redis') {
                 $this->access_token = $cache->tags('yz_seller_' . $this->seller_id)->get('access_token');
                 $this->refresh_token = $cache->tags('yz_seller_' . $this->seller_id)->get('refresh_token');
             } else {
