@@ -433,7 +433,7 @@ class YzOpenSdk
          * @var CacheManager $cache
          */
         $cache = $this->app->make('cache');
-        if (config('multi_seller')) {
+        if (config('yz.multi_seller')) {
             if (method_exists($cache, 'tags')) {
                 return $cache->tags('yz_seller_' . $seller_id)->has('refresh_token');
             } else {
