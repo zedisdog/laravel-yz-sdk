@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Concerns\HasAttributes;
  * Class BaseMessage
  * @package Dezsidog\YzSdk\Message
  * @property-read string $type 消息类型
+ * @property-read integer $kdt_id 店铺id
  */
 abstract class BaseMessage
 {
