@@ -423,6 +423,28 @@ class YzOpenSdk
     }
 
     /**
+     * 是否存在token
+     * @param $seller_id
+     * @return bool
+     */
+    public function hasToken($seller_id = null)
+    {
+        /**
+         * @var CacheManager $cache
+         */
+        $cache = $this->app->make('cache');
+        if (config('multi_seller')) {
+            if (method_exists($cache, 'tags')) {
+                return $cache->tags('yz_seller_' . $seller_id)->has('refresh_token');
+            } else {
+                return $cache->has('yz_seller_' . $seller_id . '_refresh_token');
+            }
+        } else {
+            return $cache->has('yz_refresh_token');
+        }
+    }
+
+    /**
      * @param int $points
      * @param string $id mobile or fans_id
      * @param string $version
