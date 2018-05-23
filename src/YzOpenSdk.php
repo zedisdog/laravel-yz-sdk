@@ -552,4 +552,20 @@ class YzOpenSdk
 
         return $this->post($method, $version, $params, 'response.presents');
     }
+
+    /**
+     * 获取未结束的优惠活动
+     * @param array $fields
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getUnfinishedCoupons(array $fields = [], $version='3.0.0'): ?array
+    {
+        $method = 'youzan.ump.coupons.unfinished.search';
+        if ($fields) {
+            $params['fields'] = $fields;
+        }
+        return $this->post($method, $version, $params, 'response.coupons');
+    }
 }
