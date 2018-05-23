@@ -434,7 +434,7 @@ class YzOpenSdk
          */
         $cache = $this->app->make('cache');
         if (config('yz.multi_seller')) {
-            if (method_exists($cache, 'tags')) {
+            if ($cache->getDefaultDriver() == 'redis') {
                 return $cache->tags('yz_seller_' . $seller_id)->has('refresh_token');
             } else {
                 return $cache->has('yz_seller_' . $seller_id . '_refresh_token');
