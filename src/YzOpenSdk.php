@@ -116,7 +116,11 @@ class YzOpenSdk
              * @var CacheManager $cache
              */
             $cache = $this->app->make('cache');
-            if (config('yz.multi_seller') && $this->seller_id) {
+            if (config('yz.multi_seller')) {
+                if (!$this->seller_id) {
+                    $info = $this->getShopInfo();
+                    $this->seller_id = $info['id'];
+                }
                 if ($cache->getDefaultDriver() == 'redis') {
                     $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
                     $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
@@ -223,21 +227,6 @@ class YzOpenSdk
             ]
          */
         $result = $this->post($method, $version);
-
-        if (config('yz.multi_seller')) {
-            /**
-             * @var CacheManager $cache
-             */
-            $cache = $this->app->make('cache');
-            $this->seller_id = $result['id'];
-            if ($cache->getDefaultDriver() == 'redis') {
-                $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
-                $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
-            } else {
-                $cache->put('yz_seller_' . $this->seller_id . '_access_token', $this->access_token, $result['expires_in']/60);
-                $cache->put('yz_seller_' . $this->seller_id . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
-            }
-        }
 
         return $result;
     }
