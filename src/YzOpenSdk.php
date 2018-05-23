@@ -576,9 +576,9 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function getPromoCard($id, $version='3.0.0'): ?array
+    public function getCoupon($id, $version='3.0.0'): ?array
     {
-        $method = 'youzan.ump.promocard.detail.get';
+        $method = 'youzan.ump.coupon.detail.get';
 
         $params['id'] = $id;
 
