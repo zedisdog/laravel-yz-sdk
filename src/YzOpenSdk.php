@@ -568,4 +568,20 @@ class YzOpenSdk
         }
         return $this->post($method, $version, $params, 'response.coupons');
     }
+
+    /**
+     * 获取优惠券详情
+     * @param $id
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getPromoCard($id, $version='3.0.0'): ?array
+    {
+        $method = 'youzan.ump.promocard.detail.get';
+
+        $params['id'] = $id;
+
+        return $this->post($method, $version, $params);
+    }
 }
