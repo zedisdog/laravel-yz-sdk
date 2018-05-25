@@ -584,4 +584,17 @@ class YzOpenSdk
 
         return $this->post($method, $version, $params);
     }
+
+    /**
+     * 发放优惠券/码
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function takeCoupon(array $params, $version='3.0.0'): ?array
+    {
+        $method = 'youzan.ump.coupon.take';
+        return $this->post($method, $version, $params);
+    }
 }
