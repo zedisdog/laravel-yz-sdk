@@ -17,7 +17,7 @@ return [
         'url' => 'yz-hook',
         'action' => '\Dezsidog\YzSdk\Http\HookController@handler'
     ],
-    'client_id' => "",
-    'client_secret' => "",
+    'client_id' => env('YZ_CLIENT_ID', ""),
+    'client_secret' => env('YZ_SECRET', ""),
     'multi_seller' => true,
 ];
