@@ -6,8 +6,6 @@
  * Time: 下午8:30
  */
 return [
-    // 事件是否需要使用队列
-    'event_should_queue' => true,
     // 有赞授权回调路由名称
     'callback' => '',
     // 有赞推送钩子
