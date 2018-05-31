@@ -19,6 +19,8 @@ class HookController extends Controller
 {
     public function handler(Request $request)
     {
+        $log = app()->make('log');
+        $log->info('yz-message-receive', $request->input() ?? []);
         if ($request->has('type')) {
             $message = MessageFactory::create($request->input());
             if (config('yz.hook.event_should_queue')) {
