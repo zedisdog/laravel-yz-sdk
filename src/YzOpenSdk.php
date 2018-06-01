@@ -565,6 +565,8 @@ class YzOpenSdk
         $method = 'youzan.ump.coupons.unfinished.search';
         if ($fields) {
             $params['fields'] = $fields;
+        } else {
+            $params = [];
         }
         return $this->post($method, $version, $params, 'response.coupons');
     }
