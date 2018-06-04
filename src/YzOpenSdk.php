@@ -532,6 +532,9 @@ class YzOpenSdk
         $client = new Client($this->getToken());
         $result = $this->checkError($client->post($method, $version, $params));
 
+        $logger = $this->app->make('log');
+        $logger->info('yz_api_call', ['method' => $method,'params' => $params,'response_field' => $response_field, 'result' => $result]);
+
         return array_get($result, $response_field);
     }
 
