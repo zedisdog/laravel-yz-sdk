@@ -65,17 +65,17 @@ class YzOpenSdk
      */
     public function getToken(): string
     {
+        /**
+         * @var Request $request
+         */
+        $request = $this->app->make('request');
         //有access_token 就返回access_token
-        if ($this->access_token) {
+        if ($this->access_token && !$request->has('code')) {
             return $this->access_token;
         }else{
             $keys['redirect_uri'] = \URL::Route(config('yz.callback'));
 
             // 如果有code就去获取，没有就尝试通过refresh_token刷新access_token
-            /**
-             * @var Request $request
-             */
-            $request = $this->app->make('request');
             if ($request->has('code')) {
                 $type = 'oauth';
                 $keys['code'] = $request->input('code');
