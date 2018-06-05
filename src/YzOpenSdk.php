@@ -118,7 +118,13 @@ class YzOpenSdk
             $cache = $this->app->make('cache');
             if (config('yz.multi_seller')) {
                 if (!$this->seller_id) {
-                    $info = $this->getShopInfo();
+                    $client = new Client($this->access_token);
+                    $result = $this->checkError($client->post('youzan.shop.get', '3.0.0', []));
+
+                    $logger = $this->app->make('log');
+                    $logger->info('yz_api_call', ['method' => 'youzan.shop.get','params' => [],'response_field' => 'response', 'result' => $result]);
+
+                    $info = array_get($result, 'response');
                     $this->seller_id = $info['id'];
                 }
                 if ($cache->getDefaultDriver() == 'redis') {
