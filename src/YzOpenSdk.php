@@ -109,31 +109,41 @@ class YzOpenSdk
                 ];
                 Log::error('no access_token', $context);
             }
-            $this->access_token = $result['access_token'];
-            $this->refresh_token = $result['refresh_token'];
+            if (!empty($result['access_token'])) {
+                $this->access_token = $result['access_token'];
+                $this->refresh_token = $result['refresh_token'];
 
-            /**
-             * @var CacheManager $cache
-             */
-            $cache = $this->app->make('cache');
-            if (config('yz.multi_seller')) {
-                if (!$this->seller_id) {
-                    $info = $this->getShopInfo();
-                    $this->seller_id = $info['id'];
-                }
-                if ($cache->getDefaultDriver() == 'redis') {
-                    $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
-                    $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
+                /**
+                 * @var CacheManager $cache
+                 */
+                $cache = $this->app->make('cache');
+                if (config('yz.multi_seller')) {
+                    if (!$this->seller_id) {
+                        $client = new Client($this->access_token);
+                        $info = $this->checkError($client->post('youzan.shop.get', '3.0.0', []));
+
+                        $logger = $this->app->make('log');
+                        $logger->info('yz_api_call', ['method' => 'youzan.shop.get','params' => [],'response_field' => 'response', 'result' => $info]);
+
+                        $info = array_get($info, 'response');
+                        $this->seller_id = $info['id'];
+                    }
+                    if ($cache->getDefaultDriver() == 'redis') {
+                        $cache->tags('yz_seller_' . $this->seller_id)->put('access_token', $this->access_token, $result['expires_in']/60);
+                        $cache->tags('yz_seller_' . $this->seller_id)->put('refresh_token', $this->refresh_token, 60 * 24 * 28);
+                    } else {
+                        $cache->put('yz_seller_' . $this->seller_id . '_access_token', $this->access_token, $result['expires_in']/60);
+                        $cache->put('yz_seller_' . $this->seller_id . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
+                    }
                 } else {
-                    $cache->put('yz_seller_' . $this->seller_id . '_access_token', $this->access_token, $result['expires_in']/60);
-                    $cache->put('yz_seller_' . $this->seller_id . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
+                    $cache->put('yz_access_token', $this->access_token, $result['expires_in']/60);
+                    $cache->put('yz_refresh_token', $this->refresh_token, 60 * 24 * 28);
                 }
-            } else {
-                $cache->put('yz_access_token', $this->access_token, $result['expires_in']/60);
-                $cache->put('yz_refresh_token', $this->refresh_token, 60 * 24 * 28);
-            }
 
-            return $result['access_token'];
+                return $result['access_token'];
+            } else {
+                return $this->access_token;
+            }
         }
     }
 
