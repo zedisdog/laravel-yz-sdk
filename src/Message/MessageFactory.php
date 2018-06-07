@@ -17,6 +17,7 @@ class MessageFactory
             case 'TRADE_ORDER_STATE':
                 return new TradeOrderState($data);
             case 'COUPON_PROMOTION':
+            case 'COUPON_CUSTOMER_PROMOTION':
                 return new Coupon($data);
             default:
                 throw new \InvalidArgumentException('unsupported message');
