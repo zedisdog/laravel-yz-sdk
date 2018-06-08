@@ -615,7 +615,7 @@ class YzOpenSdk
 
     /**
      * （分页查询）查询优惠券（码）活动列表
-     * todo: 返回一个分页对象以供查询
+     * todo: 返回一个分页对象以供查询,这个对象可以迭代
      * @param array $params
      * @param string $version
      * @return array|null
