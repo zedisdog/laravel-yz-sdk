@@ -621,7 +621,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function couponList(array $params = [], $version = '3.0.0'): ?array
+    public function getCouponList(array $params = [], $version = '3.0.0'): ?array
     {
         $method = 'youzan.ump.coupon.search';
         $params = array_merge(['page_no' => 1, 'page_size' => 1000], $params);
