@@ -615,13 +615,13 @@ class YzOpenSdk
 
     /**
      * （分页查询）查询优惠券（码）活动列表
-     * todo: 返回一个分页对象以供查询
+     * todo: 返回一个分页对象以供查询,这个对象可以迭代
      * @param array $params
      * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function couponList(array $params = [], $version = '3.0.0'): ?array
+    public function getCouponList(array $params = [], $version = '3.0.0'): ?array
     {
         $method = 'youzan.ump.coupon.search';
         $params = array_merge(['page_no' => 1, 'page_size' => 1000], $params);
