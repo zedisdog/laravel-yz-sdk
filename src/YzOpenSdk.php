@@ -187,7 +187,7 @@ class YzOpenSdk
 
     /**
      * 通过 open_id 或者 fans_id 获取用户信息
-     * @param $id
+     * @param integer|string $id fans_id或者open_id
      * @param string $version
      * @return array|null
      * @throws \Exception
@@ -203,6 +203,22 @@ class YzOpenSdk
         }
 
         return $this->post($method, $version, $params, 'response.user');
+    }
+
+    /**
+     * 根据手机号码获取openId
+     * @param string $phone
+     * @param string $version
+     * @return null|string
+     * @throws \Exception
+     */
+    public function getOpenId(string $phone, string $version='3.0.0'): ?string
+    {
+        $method = 'youzan.user.weixin.openid.get';
+
+        $result = $this->post($method, $version, ['mobile' => $phone]);
+
+        return $result['open_id'];
     }
 
     /**
