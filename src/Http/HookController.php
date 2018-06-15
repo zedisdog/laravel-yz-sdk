@@ -22,7 +22,9 @@ class HookController extends Controller
         $log->info('yz-message-receive', $request->input() ?? []);
         if ($request->has('type')) {
             $message = MessageFactory::create($request->input());
-            event(new ReceivedYzMessage($message));
+            if ($message) {
+                event(new ReceivedYzMessage($message));
+            }
         }
 
         die('{"code":0,"msg":"success"}');

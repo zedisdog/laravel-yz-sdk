@@ -20,7 +20,9 @@ class MessageFactory
             case 'COUPON_CUSTOMER_PROMOTION':
                 return new Coupon($data);
             default:
-                throw new \InvalidArgumentException('unsupported message');
+                \Log::warning("unsupported message <{$data['type']}>");
+                return null;
+//                throw new \InvalidArgumentException('unsupported message');
         }
     }
 }
