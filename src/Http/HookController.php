@@ -13,6 +13,7 @@ use Dezsidog\YzSdk\Events\ReceivedYzMessage;
 use Dezsidog\YzSdk\Message\MessageFactory;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\App;
 
 class HookController extends Controller
 {
@@ -26,7 +27,10 @@ class HookController extends Controller
                 event(new ReceivedYzMessage($message));
             }
         }
-
-        die('{"code":0,"msg":"success"}');
+        if (\App::environment('testing')) {
+            return '{"code":0,"msg":"success"}';
+        } else {
+            die('{"code":0,"msg":"success"}');
+        }
     }
 }
