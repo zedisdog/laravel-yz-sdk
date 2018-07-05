@@ -222,6 +222,23 @@ class YzOpenSdk
     }
 
     /**
+     * 根据交易号获取分销员手机号
+     * @param string $out_trade_id
+     * @param string $version
+     * @return null|string
+     * @throws \Exception
+     */
+    public function getPhoneByTrade(string $out_trade_id, $version='3.0.0'): ?string
+    {
+        $method = 'youzan.salesman.trades.account.get';
+        $params = [
+            'order_no' => $out_trade_id
+        ];
+        $result = $this->post($method, $version, $params);
+        return $result['mobile'];
+    }
+
+    /**
      * 获取店铺信息
      * @param string $version
      * @return array|null
