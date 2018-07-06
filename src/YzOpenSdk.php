@@ -43,6 +43,13 @@ class YzOpenSdk
     public $seller_id;
 
     /**
+     * @var array
+     */
+    protected $dont_report = [
+        140400200
+    ];
+
+    /**
      * YzOpenSdk constructor.
      * @param Application $app
      * @param null|string $access_token
@@ -56,6 +63,16 @@ class YzOpenSdk
         if (!$this->access_token && !$this->refresh_token) {
             $this->tryTokenCache();
         }
+    }
+
+    /**
+     * 设置不抛出异常的错误码
+     * @param int $code
+     */
+    public function dontReport(int $code)
+    {
+        $this->dont_report[] = $code;
+        $this->dont_report = array_unique($this->dont_report);
     }
 
     /**
@@ -556,10 +573,14 @@ class YzOpenSdk
     private function checkError(array $result): ?array
     {
         if (isset($result['error_response'])) {
-            throw new \RuntimeException(json_encode($result));
+            if (in_array($result['code'], $this->dont_report)) {
+                return null;
+            } else {
+                throw new \RuntimeException(json_encode($result));
+            }
+        } else {
+            return $result;
         }
-
-        return $result;
     }
 
     /**
@@ -578,7 +599,7 @@ class YzOpenSdk
         $logger = $this->app->make('log');
         $logger->info('yz_api_call', ['method' => $method,'params' => $params,'response_field' => $response_field, 'result' => $result]);
 
-        return array_get($result, $response_field);
+        return $result ? array_get($result, $response_field) : $result;
     }
 
     /**
