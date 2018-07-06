@@ -660,4 +660,17 @@ class YzOpenSdk
         $params = array_merge(['page_no' => 1, 'page_size' => 1000], $params);
         return $this->post($method, $version, $params, 'response.groups');
     }
+
+    /**
+     * 获取分销员信息
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getSalesman(array $params = [], $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.salesman.account.get';
+        return $this->post($method, $version, $params);
+    }
 }
