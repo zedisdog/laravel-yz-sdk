@@ -694,4 +694,17 @@ class YzOpenSdk
         $method = 'youzan.salesman.account.get';
         return $this->post($method, $version, $params);
     }
+
+    /**
+     * 获取分销员列表
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getSalesmanList(array $params = [], $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.salesman.accounts.get';
+        return $this->post($method, $version, $params);
+    }
 }
