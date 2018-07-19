@@ -46,6 +46,7 @@ class YzOpenSdk
      * @var array
      */
     protected $dont_report = [
+        // 没有找到分销员报的错
         140400200
     ];
 
