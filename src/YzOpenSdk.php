@@ -46,8 +46,8 @@ class YzOpenSdk
      * @var array
      */
     protected $dont_report = [
-        // 没有找到分销员报的错
-        140400200
+        140400200,
+        135500009
     ];
 
     /**
@@ -574,7 +574,7 @@ class YzOpenSdk
     private function checkError(array $result): ?array
     {
         if (isset($result['error_response'])) {
-            if (in_array($result['code'], $this->dont_report)) {
+            if (in_array($result['error_response']['code'], $this->dont_report)) {
                 return null;
             } else {
                 throw new \RuntimeException(json_encode($result));
