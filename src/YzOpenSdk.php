@@ -43,6 +43,14 @@ class YzOpenSdk
     public $seller_id;
 
     /**
+     * @var array
+     */
+    protected $dont_report = [
+        140400200,
+        135500009
+    ];
+
+    /**
      * YzOpenSdk constructor.
      * @param Application $app
      * @param null|string $access_token
@@ -56,6 +64,16 @@ class YzOpenSdk
         if (!$this->access_token && !$this->refresh_token) {
             $this->tryTokenCache();
         }
+    }
+
+    /**
+     * 设置不抛出异常的错误码
+     * @param int $code
+     */
+    public function dontReport(int $code)
+    {
+        $this->dont_report[] = $code;
+        $this->dont_report = array_unique($this->dont_report);
     }
 
     /**
@@ -219,6 +237,23 @@ class YzOpenSdk
         $result = $this->post($method, $version, ['mobile' => $phone]);
 
         return $result['open_id'];
+    }
+
+    /**
+     * 根据交易号获取分销员手机号
+     * @param string $out_trade_id
+     * @param string $version
+     * @return null|string
+     * @throws \Exception
+     */
+    public function getPhoneByTrade(string $out_trade_id, $version='3.0.0'): ?string
+    {
+        $method = 'youzan.salesman.trades.account.get';
+        $params = [
+            'order_no' => $out_trade_id
+        ];
+        $result = $this->post($method, $version, $params);
+        return $result['mobile'];
     }
 
     /**
@@ -539,10 +574,14 @@ class YzOpenSdk
     private function checkError(array $result): ?array
     {
         if (isset($result['error_response'])) {
-            throw new \RuntimeException(json_encode($result));
+            if (in_array($result['error_response']['code'], $this->dont_report)) {
+                return null;
+            } else {
+                throw new \RuntimeException(json_encode($result));
+            }
+        } else {
+            return $result;
         }
-
-        return $result;
     }
 
     /**
@@ -561,7 +600,7 @@ class YzOpenSdk
         $logger = $this->app->make('log');
         $logger->info('yz_api_call', ['method' => $method,'params' => $params,'response_field' => $response_field, 'result' => $result]);
 
-        return array_get($result, $response_field);
+        return $result ? array_get($result, $response_field) : $result;
     }
 
     /**
@@ -642,5 +681,31 @@ class YzOpenSdk
         $method = 'youzan.ump.coupon.search';
         $params = array_merge(['page_no' => 1, 'page_size' => 1000], $params);
         return $this->post($method, $version, $params, 'response.groups');
+    }
+
+    /**
+     * 获取分销员信息
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getSalesman(array $params = [], $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.salesman.account.get';
+        return $this->post($method, $version, $params);
+    }
+
+    /**
+     * 获取分销员列表
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function getSalesmanList(array $params = [], $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.salesman.accounts.get';
+        return $this->post($method, $version, $params);
     }
 }
