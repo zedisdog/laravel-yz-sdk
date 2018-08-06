@@ -94,7 +94,7 @@ class YzOpenSdk
             if (config('yz.multi_seller')) {
                 $keys['redirect_uri'] = \URL::Route(config('yz.callback'));
             } else {
-                $keys['type'] = [ 'kdt_id' => config('yz.kdt_id') ];
+                $keys['kdt_id'] = config('yz.kdt_id');
             }
 
             if (config('yz.multi_seller')) {
