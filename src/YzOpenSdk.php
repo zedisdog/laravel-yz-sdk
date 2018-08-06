@@ -137,7 +137,9 @@ class YzOpenSdk
             }
             if (!empty($result['access_token'])) {
                 $this->access_token = $result['access_token'];
-                $this->refresh_token = $result['refresh_token'];
+                if (config('yz.multi_seller')) {
+                    $this->refresh_token = $result['refresh_token'];
+                }
 
                 /**
                  * @var CacheManager $cache
@@ -163,7 +165,6 @@ class YzOpenSdk
                     }
                 } else {
                     $cache->put('yz_access_token', $this->access_token, $result['expires_in']/60);
-                    $cache->put('yz_refresh_token', $this->refresh_token, 60 * 24 * 28);
                 }
 
                 return $result['access_token'];
