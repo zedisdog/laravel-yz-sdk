@@ -91,21 +91,29 @@ class YzOpenSdk
         if ($this->access_token && !$request->has('code')) {
             return $this->access_token;
         }else{
-            $keys['redirect_uri'] = \URL::Route(config('yz.callback'));
-
-            // 如果有code就去获取，没有就尝试通过refresh_token刷新access_token
-            if ($request->has('code')) {
-                $type = 'oauth';
-                $keys['code'] = $request->input('code');
-            }else{
-                $type = 'refresh_token';
-                $keys['refresh_token'] = $this->refresh_token;
+            if (config('yz.multi_seller')) {
+                $keys['redirect_uri'] = \URL::Route(config('yz.callback'));
+            } else {
+                $keys['type'] = [ 'kdt_id' => config('yz.kdt_id') ];
             }
 
-            if (
-                empty($keys['code']) && empty($keys['refresh_token'])
-            ) {
-                throw new \RuntimeException('no code or refresh_token');
+            if (config('yz.multi_seller')) {
+                // 如果有code就去获取，没有就尝试通过refresh_token刷新access_token
+                if ($request->has('code')) {
+                    $type = 'oauth';
+                    $keys['code'] = $request->input('code');
+                }else{
+                    $type = 'refresh_token';
+                    $keys['refresh_token'] = $this->refresh_token;
+                }
+
+                if (
+                    empty($keys['code']) && empty($keys['refresh_token'])
+                ) {
+                    throw new \RuntimeException('no code or refresh_token');
+                }
+            } else {
+                $type = 'self';
             }
 
             /*
