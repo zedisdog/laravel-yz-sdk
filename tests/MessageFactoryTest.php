@@ -41,12 +41,12 @@ class MessageFactoryTest extends TestCase
             "kdt_id":63077,
             "kdt_name":"Qi码运动馆",
             "mode":1,
-            "msg":"%7B%22update_time%22:%222017-08-07%2018:19:05%22,%22payment%22:%2211.00%22,%22tid%22:%22E20170807181905034500002%22,%22status%22:%22TRADE_CLOSED%22%7D",
+            "msg":"%7B%22update_time%22:%222017-08-07%2018:19:05%22,%22close_reason%22:%22NONE%22,%22tid%22:%22E20170807181905034500002%22,%22close_type%22:1%7D",
             "sendCount":0,
             "sign":"5c15274ca4c079197c89154f44b20307",
             "status":"TRADE_CLOSED",
             "test":false,
-            "type":"TRADE_ORDER_STATE",
+            "type":"trade_TradeClose",
             "version":1502101273
         }';
         $message = MessageFactory::create(json_decode($data, true));

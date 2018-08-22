@@ -117,27 +117,8 @@ abstract class BaseMessage
 
     public function fill($data)
     {
-        // msg会根据不同的type来实例化，所以要先等type被赋值，干脆就把msg放到最后一个赋值
-        $msg_key = '';
-        $msg = '';
-        foreach ($data as $key => $datum) {
-            if (preg_match('/^msg$/i', $key)) {
-                $msg_key = $key;
-                break;
-            }
-        }
-
-        if ($msg_key) {
-            $msg = $data[$msg_key];
-            unset($data[$msg_key]);
-        }
-
         foreach ($data as $key => $value) {
             $this->setAttribute($key, $value);
-        }
-
-        if ($msg) {
-            $this->setAttribute($msg_key, $msg);
         }
     }
 }
