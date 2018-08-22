@@ -17,5 +17,6 @@ return [
     ],
     'client_id' => env('YZ_CLIENT_ID', ""),
     'client_secret' => env('YZ_CLIENT_SECRET', ""),
+    'kdt_id' => env('YZ_KDT_ID', ""),
     'multi_seller' => true,
 ];

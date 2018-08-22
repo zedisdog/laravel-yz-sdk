@@ -8,19 +8,25 @@
 
 namespace Dezsidog\YzSdk\Message;
 
-
 class MessageFactory
 {
     public static function create($data)
     {
         switch ($data['type']) {
-            case 'TRADE_ORDER_STATE':
+            case 'trade_TradeCreate':
+            case 'trade_TradeClose':
+            case 'trade_TradeSuccess':
+            case 'trade_TradePartlySellerShip':
+            case 'trade_TradeSellerShip':
+            case 'trade_TradeBuyerPay':
                 return new TradeOrderState($data);
             case 'COUPON_PROMOTION':
             case 'COUPON_CUSTOMER_PROMOTION':
                 return new Coupon($data);
             default:
-                \Log::warning("unsupported message <{$data['type']}>");
+                if (class_exists(\Log::class)) {
+                    \Log::warning("unsupported message <{$data['type']}>");
+                }
                 return null;
 //                throw new \InvalidArgumentException('unsupported message');
         }

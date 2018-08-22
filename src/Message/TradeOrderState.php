@@ -14,20 +14,20 @@ use Carbon\Carbon;
  * 有赞推送消息
  * Class Message
  * @package App\Lib
- * @property-read string $client_id
- * @property-read string $id 订单id
- * @property-read string $tid 订单id
- * @property-read integer $kdt_id 店铺id
- * @property-read string $kdt_name 店铺名称
- * @property-read integer $mode
- * @property-read integer $send_count
- * @property-read string $sign 签名
- * @property-read string $status 订单状态
- * @property-read bool $test 是否是测试消息
- * @property-read string $type 类型
- * @property-read integer $version 版本
- * @property-read integer $payment 金额
- * @property-read Carbon $update_time 更新时间
+ * @property-read string        $client_id
+ * @property-read string        $id         订单id
+ * @property-read string        $tid        订单id
+ * @property-read integer       $kdt_id     店铺id
+ * @property-read string        $kdt_name   店铺名称
+ * @property-read integer       $mode
+ * @property-read integer       $send_count
+ * @property-read string        $sign       签名
+ * @property-read string        $status     订单状态
+ * @property-read bool          $test       是否是测试消息
+ * @property-read string        $type       类型
+ * @property-read integer       $version    版本
+ * @property-read integer|null $payment     金额
+ * @property-read Carbon|null $update_time  更新时间
  *
  */
 class TradeOrderState extends BaseMessage
@@ -61,20 +61,27 @@ class TradeOrderState extends BaseMessage
      */
     const TRADE_CLOSED = 'TRADE_CLOSED';
 
-    protected $dates = [
-        'update_time'
-    ];
-
-    public function setPaymentAttribute($value)
+    public function getPaymentAttribute()
     {
-        $this->attributes['payment'] = intval($value * 100);
+        if (!empty($this->attributes['msg']['full_order_info'])) {
+            return intval($this->attributes['msg']['full_order_info']['pay_info']['payment'] * 100);
+        } else {
+            return null;
+        }
+    }
+
+    public function getUpdateTimeAttribute()
+    {
+        if (!empty($this->attributes['msg']['full_order_info'])) {
+            return new Carbon($this->attributes['msg']['full_order_info']['order_info']['update_time']);
+        } else {
+            return null;
+        }
     }
 
     public function setMsgAttribute($value)
     {
-        $msg = json_decode(urldecode($value), true);
-        $this->setAttribute('payment', $msg['payment']);
-        $this->setAttribute('update_time', $msg['update_time']);
+        $this->attributes['msg'] = json_decode(urldecode($value),true);
     }
 
     public function getTidAttribute()
