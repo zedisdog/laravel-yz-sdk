@@ -63,5 +63,6 @@ class TradeOrderStateTest extends TestCase
         $this->assertEquals(250, $message->payment);
         $this->assertEquals($message->tid, $message->id);
         $this->assertEquals(TradeOrderState::WAIT_BUYER_PAY, $message->status);
+        $this->assertEquals('trade_TradeCreate', $message->type);
     }
 }
