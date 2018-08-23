@@ -37,6 +37,7 @@ class TradeOrderStateTest extends TestCase
         $this->assertEquals(null, $message->payment);
         $this->assertEquals($message->tid, $message->id);
         $this->assertEquals(TradeOrderState::TRADE_CLOSED, $message->status);
+        $this->assertEquals('trade_TradeClose', $message->type);
     }
 
     public function testWithTrade()
