@@ -10,6 +10,7 @@ namespace Dezsidog\YzSdk\Test;
 
 
 use Carbon\Carbon;
+use Dezsidog\YzSdk\Message\BaseMessage;
 use Dezsidog\YzSdk\Message\TradeOrderState;
 use PHPUnit\Framework\TestCase;
 
@@ -37,7 +38,7 @@ class TradeOrderStateTest extends TestCase
         $this->assertEquals(null, $message->payment);
         $this->assertEquals($message->tid, $message->id);
         $this->assertEquals(TradeOrderState::TRADE_CLOSED, $message->status);
-        $this->assertEquals('trade_TradeClose', $message->type);
+        $this->assertEquals(BaseMessage::TRADE_ORDER_STATE, $message->type);
     }
 
     public function testWithTrade()
@@ -64,6 +65,6 @@ class TradeOrderStateTest extends TestCase
         $this->assertEquals(250, $message->payment);
         $this->assertEquals($message->tid, $message->id);
         $this->assertEquals(TradeOrderState::WAIT_BUYER_PAY, $message->status);
-        $this->assertEquals('trade_TradeCreate', $message->type);
+        $this->assertEquals(BaseMessage::TRADE_ORDER_STATE, $message->type);
     }
 }

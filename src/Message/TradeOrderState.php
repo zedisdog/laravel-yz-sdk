@@ -88,4 +88,9 @@ class TradeOrderState extends BaseMessage
     {
         return $this->getAttribute('id');
     }
+
+    public function getTypeAttribute()
+    {
+        return BaseMessage::TRADE_ORDER_STATE;
+    }
 }
