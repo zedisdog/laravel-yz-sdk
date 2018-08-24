@@ -28,6 +28,7 @@ use Carbon\Carbon;
  * @property-read integer       $version    版本
  * @property-read integer|null $payment     金额
  * @property-read Carbon|null $update_time  更新时间
+ * @property-read array         $msg        消息体
  *
  */
 class TradeOrderState extends BaseMessage
@@ -87,5 +88,10 @@ class TradeOrderState extends BaseMessage
     public function getTidAttribute()
     {
         return $this->getAttribute('id');
+    }
+
+    public function getTypeAttribute()
+    {
+        return BaseMessage::TRADE_ORDER_STATE;
     }
 }
