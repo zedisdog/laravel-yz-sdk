@@ -717,4 +717,16 @@ class YzOpenSdk
         $method = 'youzan.salesman.accounts.get';
         return $this->post($method, $version, $params);
     }
+
+    /**
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function itemCreate(array $params = [], $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.item.create';
+        return $this->post($method, $version, $params);
+    }
 }

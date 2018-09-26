@@ -12,7 +12,8 @@
         "php": "^7.1",
         "ext-json": "*",
         "laravel/framework": "^5.5",
-        "xu42/open-sdk": "^1.0"
+        "xu42/open-sdk": "^1.0",
+        "orchestra/testbench": "^3.7"
     },
     "autoload": {
         "psr-4": {
