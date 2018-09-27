@@ -10,6 +10,7 @@ namespace Dezsidog\YzSdk;
 
 
 use Illuminate\Cache\CacheManager;
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -84,6 +85,10 @@ class YzOpenSdk
     public function getToken(): string
     {
         /**
+         * @var Repository $config
+         */
+        $config = $this->app['config'];
+        /**
          * @var Request $request
          */
         $request = $this->app->make('request');
@@ -91,13 +96,13 @@ class YzOpenSdk
         if ($this->access_token && !$request->has('code')) {
             return $this->access_token;
         }else{
-            if (config('yz.multi_seller')) {
-                $keys['redirect_uri'] = \URL::Route(config('yz.callback'));
+            if ($config->get('yz.multi_seller')) {
+                $keys['redirect_uri'] = \URL::Route($config->get('yz.callback'));
             } else {
-                $keys['kdt_id'] = config('yz.kdt_id');
+                $keys['kdt_id'] = $config->get('yz.kdt_id');
             }
 
-            if (config('yz.multi_seller')) {
+            if ($config->get('yz.multi_seller')) {
                 // 如果有code就去获取，没有就尝试通过refresh_token刷新access_token
                 if ($request->has('code')) {
                     $type = 'oauth';
@@ -125,7 +130,7 @@ class YzOpenSdk
                 "token_type" => "Bearer"
                 ]
              */
-            $result = (new \Youzan\Open\Token(config('yz.client_id'), config('yz.client_secret')))->getToken($type, $keys);
+            $result = (new \Youzan\Open\Token($config->get('yz.client_id'), $config->get('yz.client_secret')))->getToken($type, $keys);
             $this->origin_data = $result;
             if (!isset($result['access_token'])) {
                 $context = [
@@ -137,7 +142,7 @@ class YzOpenSdk
             }
             if (!empty($result['access_token'])) {
                 $this->access_token = $result['access_token'];
-                if (config('yz.multi_seller')) {
+                if ($config->get('yz.multi_seller')) {
                     $this->refresh_token = $result['refresh_token'];
                 }
 
@@ -145,7 +150,7 @@ class YzOpenSdk
                  * @var CacheManager $cache
                  */
                 $cache = $this->app->make('cache');
-                if (config('yz.multi_seller')) {
+                if ($config->get('yz.multi_seller')) {
                     if (!$this->seller_id) {
                         $client = new Client($this->access_token);
                         $info = $this->checkError($client->post('youzan.shop.get', '3.0.0', []));
@@ -488,6 +493,10 @@ class YzOpenSdk
      */
     public function hasToken($seller_id = null)
     {
+        /**
+         * @var Repository $config
+         */
+        $config = $this->app['config'];
         if (!$seller_id) {
             $seller_id = $this->seller_id;
         }
@@ -495,7 +504,7 @@ class YzOpenSdk
          * @var CacheManager $cache
          */
         $cache = $this->app->make('cache');
-        if (config('yz.multi_seller')) {
+        if ($config->get('yz.multi_seller')) {
             if ($cache->getDefaultDriver() == 'redis') {
                 return $cache->tags('yz_seller_' . $seller_id)->has('refresh_token');
             } else {
@@ -549,6 +558,10 @@ class YzOpenSdk
     private function tryTokenCache()
     {
         /**
+         * @var Repository $config
+         */
+        $config = $this->app['config'];
+        /**
          * @var Request $request
          * @var CacheManager $cache
          */
@@ -560,7 +573,7 @@ class YzOpenSdk
         }
 
         // 先尝试取之前的yz token
-        if (config('yz.multi_seller') && $this->seller_id) {
+        if ($config->get('yz.multi_seller') && $this->seller_id) {
             if ($cache->getDefaultDriver() == 'redis') {
                 $this->access_token = $cache->tags('yz_seller_' . $this->seller_id)->get('access_token');
                 $this->refresh_token = $cache->tags('yz_seller_' . $this->seller_id)->get('refresh_token');
@@ -598,13 +611,14 @@ class YzOpenSdk
      * @param string $version
      * @param array $params
      * @param string $response_field
+     * @param array $files
      * @return array|null
      * @throws \Exception
      */
-    private function post(string $method, string $version, array $params=[], string $response_field = 'response')
+    private function post(string $method, string $version, array $params = [], string $response_field = 'response', array $files = [])
     {
         $client = new Client($this->getToken());
-        $result = $this->checkError($client->post($method, $version, $params));
+        $result = $this->checkError($client->post($method, $version, $params, $files));
 
         $logger = $this->app->make('log');
         $logger->info('yz_api_call', ['method' => $method,'params' => $params,'response_field' => $response_field, 'result' => $result]);
@@ -716,5 +730,120 @@ class YzOpenSdk
     {
         $method = 'youzan.salesman.accounts.get';
         return $this->post($method, $version, $params);
+    }
+
+    /**
+     * 创建商品
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function itemCreate(array $params, $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.item.create';
+        return $this->post($method, $version, $params, 'response.item');
+    }
+
+    /**
+     * 删除商品
+     * @param $item_id
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function itemDelete($item_id, $version = '3.0.0'): bool
+    {
+        $method = 'youzan.item.delete';
+        $result = $this->post($method, $version, ['item_id' => $item_id]);
+        return $result['is_success'];
+    }
+
+    /**
+     * 更新商品
+     * @param $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function itemUpdate(array $params, $version = '3.0.0'): bool
+    {
+        if (empty($params['item_id'])) {
+            throw new \RuntimeException('item_id is required');
+        }
+        $method = 'youzan.item.update';
+        $result = $this->post($method, $version, $params, 'response');
+        return $result['is_success'];
+    }
+
+    /**
+     * 获取商品
+     * @param $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function itemGet(array $params, $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.item.get';
+        return $this->post($method, $version, $params, 'response.item');
+    }
+
+    /**
+     * 上架商品
+     * @param $item_id
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function itemUpdateListing($item_id, $version = '3.0.0'): bool
+    {
+        $method = 'youzan.item.update.listing';
+        $result = $this->post($method, $version, ['item_id' => $item_id]);
+        return $result['is_success'];
+    }
+
+    /**
+     * 下架商品
+     * @param $item_id
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function itemUpdateDelisting($item_id, $version = '3.0.0'): bool
+    {
+        $method = 'youzan.item.update.delisting';
+        $result = $this->post($method, $version, ['item_id' => $item_id]);
+        return $result['is_success'];
+    }
+
+    /**
+     * 更新sku
+     * @param $params
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function skuUpdate(array $params, $version = '3.0.0'): bool
+    {
+        if (empty($params['item_id']) || empty($params['sku_id'])) {
+            throw new \RuntimeException('item_id and sku_id are required');
+        }
+        $method = 'youzan.item.sku.update';
+        $result = $this->post($method, $version, $params);
+        return $result['is_success'];
+    }
+
+    /**
+     * 上传图片
+     * @param array $params
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function imageUpload(array $files, $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.materials.storage.platform.img.upload';
+        return $this->post($method, $version, [], 'response', $files);
     }
 }
