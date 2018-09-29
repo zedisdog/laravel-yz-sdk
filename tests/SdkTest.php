@@ -148,4 +148,14 @@ class SdkTest extends \Orchestra\Testbench\TestCase
 
         $this->sdk->itemDelete($item_id);
     }
+
+    /**
+     * @throws \Exception
+     */
+    public function testRefund()
+    {
+        $result = $this->sdk->tradeRefund('测试退款', '1474409360913335275', '0.01', 'E20180929163409008800001');
+        $this->assertTrue($result['is_success']);
+        $this->assertNotEmpty($result['refund_id']);
+    }
 }
