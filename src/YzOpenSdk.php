@@ -651,7 +651,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function getUnfinishedCoupons(array $fields = [], $version='3.0.0'): ?array
+    public function getUnfinishedCoupons(array $fields = [], string $version='3.0.0'): ?array
     {
         $method = 'youzan.ump.coupons.unfinished.search';
         if ($fields) {
@@ -669,7 +669,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function getCoupon($id, $version='3.0.0'): ?array
+    public function getCoupon($id, string $version='3.0.0'): ?array
     {
         $method = 'youzan.ump.coupon.detail.get';
 
@@ -685,7 +685,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function takeCoupon(array $params, $version='3.0.0'): ?array
+    public function takeCoupon(array $params, string $version='3.0.0'): ?array
     {
         $method = 'youzan.ump.coupon.take';
         return $this->post($method, $version, $params);
@@ -699,7 +699,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function getCouponList(array $params = [], $version = '3.0.0'): ?array
+    public function getCouponList(array $params = [], string $version = '3.0.0'): ?array
     {
         $method = 'youzan.ump.coupon.search';
         $params = array_merge(['page_no' => 1, 'page_size' => 1000], $params);
@@ -713,7 +713,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function getSalesman(array $params = [], $version = '3.0.0'): ?array
+    public function getSalesman(array $params = [], string $version = '3.0.0'): ?array
     {
         $method = 'youzan.salesman.account.get';
         return $this->post($method, $version, $params);
@@ -726,7 +726,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function getSalesmanList(array $params = [], $version = '3.0.0'): ?array
+    public function getSalesmanList(array $params = [], string $version = '3.0.0'): ?array
     {
         $method = 'youzan.salesman.accounts.get';
         return $this->post($method, $version, $params);
@@ -739,7 +739,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function itemCreate(array $params, $version = '3.0.0'): ?array
+    public function itemCreate(array $params, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.item.create';
         return $this->post($method, $version, $params, 'response.item');
@@ -752,7 +752,7 @@ class YzOpenSdk
      * @return bool
      * @throws \Exception
      */
-    public function itemDelete($item_id, $version = '3.0.0'): bool
+    public function itemDelete($item_id, string $version = '3.0.0'): bool
     {
         $method = 'youzan.item.delete';
         $result = $this->post($method, $version, ['item_id' => $item_id]);
@@ -766,7 +766,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function itemUpdate(array $params, $version = '3.0.0'): bool
+    public function itemUpdate(array $params, string $version = '3.0.0'): bool
     {
         if (empty($params['item_id'])) {
             throw new \RuntimeException('item_id is required');
@@ -783,7 +783,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function itemGet(array $params, $version = '3.0.0'): ?array
+    public function itemGet(array $params, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.item.get';
         return $this->post($method, $version, $params, 'response.item');
@@ -796,7 +796,7 @@ class YzOpenSdk
      * @return bool
      * @throws \Exception
      */
-    public function itemUpdateListing($item_id, $version = '3.0.0'): bool
+    public function itemUpdateListing($item_id, string $version = '3.0.0'): bool
     {
         $method = 'youzan.item.update.listing';
         $result = $this->post($method, $version, ['item_id' => $item_id]);
@@ -810,7 +810,7 @@ class YzOpenSdk
      * @return bool
      * @throws \Exception
      */
-    public function itemUpdateDelisting($item_id, $version = '3.0.0'): bool
+    public function itemUpdateDelisting($item_id, string $version = '3.0.0'): bool
     {
         $method = 'youzan.item.update.delisting';
         $result = $this->post($method, $version, ['item_id' => $item_id]);
@@ -824,7 +824,7 @@ class YzOpenSdk
      * @return bool
      * @throws \Exception
      */
-    public function skuUpdate(array $params, $version = '3.0.0'): bool
+    public function skuUpdate(array $params, string $version = '3.0.0'): bool
     {
         if (empty($params['item_id']) || empty($params['sku_id'])) {
             throw new \RuntimeException('item_id and sku_id are required');
@@ -842,7 +842,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function skuGet($item_id, $sku_id, $version = '3.0.0'): ?array
+    public function skuGet($item_id, $sku_id, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.item.sku.get';
         $params = [
@@ -861,9 +861,66 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function imageUpload(array $files, $version = '3.0.0'): ?array
+    public function imageUpload(array $files, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.materials.storage.platform.img.upload';
         return $this->post($method, $version, [], 'response', $files);
+    }
+
+    /**
+     * 主动退款
+     * @param string $desc
+     * @param $oid
+     * @param $refund_fee
+     * @param string $tid
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function tradeRefund(string $desc, string $oid, string $refund_fee, string $tid, string $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.trade.refund.seller.active';
+        $params = compact('desc', 'oid', 'refund_fee', 'tid');
+        return $this->post($method, $version, $params);
+    }
+
+    /**
+     * 同意退款
+     * @param string $refund_id
+     * @param string $r_version
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function tradeRefundAgree(string $refund_id, string $r_version, string $version = '3.0.0'): bool
+    {
+        $method = 'youzan.trade.refund.agree';
+        $params = [
+            'refund_id' => $refund_id,
+            'version' => $r_version
+        ];
+        $result = $this->post($method, $version, $params);
+        return $result['is_success'];
+    }
+
+    /**
+     * 拒绝退款
+     * @param string $refund_id
+     * @param string $remark
+     * @param string $r_version
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function tradeRefundRefuse(string $refund_id, string $remark, string $r_version, string $version = '3.0.0'): bool
+    {
+        $method = 'youzan.trade.refund.refuse';
+        $params = [
+            'refund_id' => $refund_id,
+            'remark' => $remark,
+            'version' => $r_version
+        ];
+        $result = $this->post($method, $version, $params);
+        return $result['is_success'];
     }
 }
