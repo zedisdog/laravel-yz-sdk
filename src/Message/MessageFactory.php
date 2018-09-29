@@ -19,6 +19,7 @@ class MessageFactory
             case 'trade_TradePartlySellerShip':
             case 'trade_TradeSellerShip':
             case 'trade_TradeBuyerPay':
+            case 'trade_TradePaid':
                 return new TradeOrderState($data);
             case 'COUPON_PROMOTION':
             case 'COUPON_CUSTOMER_PROMOTION':
