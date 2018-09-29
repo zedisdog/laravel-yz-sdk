@@ -42,6 +42,10 @@ class TradeOrderState extends BaseMessage
      */
     const WAIT_CONFIRM = 'WAIT_CONFIRM';
     /**
+     * 买家付款
+     */
+    const PAID = 'PAID';
+    /**
      * 等待卖家发货，即:买家已付款
      */
     const WAIT_SELLER_SEND_GOODS = 'WAIT_SELLER_SEND_GOODS';
