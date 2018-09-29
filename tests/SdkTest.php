@@ -100,7 +100,7 @@ class SdkTest extends \Orchestra\Testbench\TestCase
     /**
      * @throws \Exception
      */
-    public function testUpdateSku()
+    public function testGetUpdateSku()
     {
         $param = [
             [
@@ -131,6 +131,10 @@ class SdkTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals(3, $result['skus'][0]['quantity']);
         $item_id = $result['item_id'];
         $sku_id = $result['skus'][0]['sku_id'];
+
+        $result = $this->sdk->skuGet($item_id, $sku_id);
+
+        $this->assertEquals($item_id, $result['item_id']);
 
         $result = $this->sdk->skuUpdate([
             'item_id' => $item_id,

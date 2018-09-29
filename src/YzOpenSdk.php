@@ -835,6 +835,26 @@ class YzOpenSdk
     }
 
     /**
+     * 获取sku详情
+     * @param $item_id
+     * @param $sku_id
+     * @param string $version
+     * @return array|null
+     * @throws \Exception
+     */
+    public function skuGet($item_id, $sku_id, $version = '3.0.0'): ?array
+    {
+        $method = 'youzan.item.sku.get';
+        $params = [
+            'item_id' => $item_id
+        ];
+        if ($sku_id) {
+            $params['sku_id'] = $sku_id;
+        }
+        return $this->post($method, $version, $params);
+    }
+
+    /**
      * 上传图片
      * @param array $params
      * @param string $version
