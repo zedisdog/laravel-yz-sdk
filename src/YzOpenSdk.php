@@ -187,7 +187,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function addTags(int $fans_id, string $tags, $version='3.0.0')
+    public function addTags(int $fans_id, string $tags, $version='3.0.0'): ?array
     {
         $method = 'youzan.users.weixin.follower.tags.add';
 
@@ -361,7 +361,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function getOnSaleItems(array $params = ['page_size' => 300], string $version = '3.0.0')
+    public function getOnSaleItems(array $params = ['page_size' => 300], string $version = '3.0.0'): ?array
     {
         $method = 'youzan.items.onsale.get';
 
@@ -375,7 +375,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    public function getInventoryItems(array $params = ['page_size' => 300], string $version = '3.0.0')
+    public function getInventoryItems(array $params = ['page_size' => 300], string $version = '3.0.0'): ?array
     {
         $method = 'youzan.items.inventory.get';
         return $this->post($method, $version, $params, 'response.items');
@@ -491,7 +491,7 @@ class YzOpenSdk
      * @param $seller_id
      * @return bool
      */
-    public function hasToken($seller_id = null)
+    public function hasToken($seller_id = null): bool
     {
         /**
          * @var Repository $config
@@ -522,7 +522,7 @@ class YzOpenSdk
      * @return bool
      * @throws \Exception
      */
-    public function pointIncrease(int $points, string $id, string $version='3.0.1')
+    public function pointIncrease(int $points, string $id, string $version='3.0.1'): bool
     {
         $method = 'youzan.crm.customer.points.increase';
 
@@ -756,7 +756,12 @@ class YzOpenSdk
     {
         $method = 'youzan.item.delete';
         $result = $this->post($method, $version, ['item_id' => $item_id]);
-        return $result['is_success'];
+
+        if ($result) {
+            return $result['is_success'];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -773,7 +778,11 @@ class YzOpenSdk
         }
         $method = 'youzan.item.update';
         $result = $this->post($method, $version, $params, 'response');
-        return $result['is_success'];
+        if ($result) {
+            return $result['is_success'];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -800,7 +809,11 @@ class YzOpenSdk
     {
         $method = 'youzan.item.update.listing';
         $result = $this->post($method, $version, ['item_id' => $item_id]);
-        return $result['is_success'];
+        if ($result) {
+            return $result['is_success'];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -814,7 +827,11 @@ class YzOpenSdk
     {
         $method = 'youzan.item.update.delisting';
         $result = $this->post($method, $version, ['item_id' => $item_id]);
-        return $result['is_success'];
+        if ($result) {
+            return $result['is_success'];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -831,7 +848,11 @@ class YzOpenSdk
         }
         $method = 'youzan.item.sku.update';
         $result = $this->post($method, $version, $params);
-        return $result['is_success'];
+        if ($result) {
+            return $result['is_success'];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -900,7 +921,11 @@ class YzOpenSdk
             'version' => $r_version
         ];
         $result = $this->post($method, $version, $params);
-        return $result['is_success'];
+        if ($result) {
+            return $result['is_success'];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -921,6 +946,10 @@ class YzOpenSdk
             'version' => $r_version
         ];
         $result = $this->post($method, $version, $params);
-        return $result['is_success'];
+        if ($result) {
+            return $result['is_success'];
+        } else {
+            return false;
+        }
     }
 }
