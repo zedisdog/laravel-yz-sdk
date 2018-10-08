@@ -952,4 +952,43 @@ class YzOpenSdk
             return false;
         }
     }
+
+    /**
+     * 外部电子卡券创建核销码
+     * @param string $tickets
+     * @param string $orderNo
+     * @param string $singleNum
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function ticketCreate(string $tickets, string $orderNo, string $singleNum, string $version = '1.0.0'): bool
+    {
+        $method = 'youzan.ebiz.external.ticket.create';
+        $params = compact('tickets', 'orderNo', 'singleNum');
+        $result = $this->post($method, $version, $params);
+        if ($result) {
+            return $result['boolean'];
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 外部电子卡券核销
+     * @param array $params
+     * @param string $version
+     * @return bool
+     * @throws \Exception
+     */
+    public function ticketVerify(array $params, $version = '1.0.0'): bool
+    {
+        $method = 'youzan.ebiz.external.ticket.verify';
+        $result = $this->post($method, $version, $params);
+        if ($result) {
+            return $result['boolean'];
+        } else {
+            return false;
+        }
+    }
 }
