@@ -54,8 +54,8 @@ class YzOpenSdk
     /**
      * YzOpenSdk constructor.
      * @param Application $app
-     * @param null|string $access_token
-     * @param null|string $refresh_token
+     * @param string|null $access_token
+     * @param string|null $refresh_token
      */
     public function __construct($app, ?string $access_token = null, ?string $refresh_token = null)
     {
@@ -181,22 +181,27 @@ class YzOpenSdk
 
     /**
      * 向用户添加tag
-     * @param $fans_id
+     * @param int|string $id openid或者fans_id
      * @param $tags
      * @param string $version
      * @return array|null
      * @throws \Exception
      */
-    public function addTags(int $fans_id, string $tags, $version='3.0.0'): ?array
+    public function addTags($id, string $tags, $version='3.0.0'): ?array
     {
         $method = 'youzan.users.weixin.follower.tags.add';
 
         $params = [
-            'fans_id' => $fans_id,
             'tags' => $tags
         ];
 
-        return $this->post($method, $version, $params);
+        if (is_string($id) && preg_match('/[a-zA-Z]/',$id)) {
+            $params['weixin_openid'] = $id;
+        } else {
+            $params['fans_id'] = $id;
+        }
+
+        return $this->post($method, $version, $params, 'response.user');
     }
 
     /**
@@ -205,6 +210,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
+     * @deprecated 1.2.3 will remove in version 2
      */
     public function getProduct(int $product_id, string $version='3.0.0'): ?array
     {
@@ -228,7 +234,7 @@ class YzOpenSdk
     {
         $method = 'youzan.users.weixin.follower.get';
 
-        if (strlen(strval($id)) == 28) {
+        if (is_string($id) && preg_match('/[a-zA-Z]/',$id)) {
             $params['weixin_openid'] = $id;
         } else {
             $params['fans_id'] = $id;
@@ -285,7 +291,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
-     * @deprecated 1.0.0
+     * @deprecated 1.0.0 will remove in version 2
      */
     public function getUserInfo($version = '3.0.0'): ?array
     {
@@ -345,7 +351,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
-     * @deprecated 1.0.0
+     * @deprecated 1.0.0 will remove in version 2
      */
     public function getType(string $version='3.0.0'): ?array
     {
@@ -412,13 +418,13 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
-     * @deprecated 1.0.0
+     * @deprecated 1.0.0 will remove in version 2
      */
     public function getUserBasicInfo($version = '3.0.0'): ?array
     {
         $method = 'youzan.shop.basic.get';
 
-        return $this->get($method, $version);
+        return $this->post($method, $version);
     }
 
     /**
@@ -530,7 +536,7 @@ class YzOpenSdk
             'points' => $points
         ];
 
-        if (strlen($id) == 11) {
+        if (preg_match('/^1[3-9]\d{9}$/',$id)) {
             $params['mobile'] = $id;
         }else {
             $params['fans_id'] = $id;
@@ -615,7 +621,7 @@ class YzOpenSdk
      * @return array|null
      * @throws \Exception
      */
-    private function post(string $method, string $version, array $params = [], string $response_field = 'response', array $files = [])
+    protected function post(string $method, string $version, array $params = [], string $response_field = 'response', array $files = [])
     {
         $client = new Client($this->getToken());
         $result = $this->checkError($client->post($method, $version, $params, $files));
@@ -957,12 +963,12 @@ class YzOpenSdk
      * 外部电子卡券创建核销码
      * @param string $tickets
      * @param string $orderNo
-     * @param string $singleNum
+     * @param int $singleNum
      * @param string $version
      * @return bool
      * @throws \Exception
      */
-    public function ticketCreate(string $tickets, string $orderNo, string $singleNum, string $version = '1.0.0'): bool
+    public function ticketCreate(string $tickets, string $orderNo, int $singleNum = 1, string $version = '1.0.0'): bool
     {
         $method = 'youzan.ebiz.external.ticket.create';
         $params = compact('tickets', 'orderNo', 'singleNum');
