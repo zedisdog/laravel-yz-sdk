@@ -13,7 +13,8 @@
         "ext-json": "*",
         "laravel/framework": "^5.5",
         "xu42/open-sdk": "^1.0",
-        "orchestra/testbench": "^3.7"
+        "orchestra/testbench": "^3.7",
+        "mockery/mockery": "^1.2"
     },
     "autoload": {
         "psr-4": {
