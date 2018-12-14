@@ -478,6 +478,7 @@ class YzOpenSdk
      * @param string $version 版本
      * @return array|null
      * @throws \Exception
+     * todo: add param buyer_id in version 2
      */
     public function givePresent(string $activity_id, string $fans_id, $version='3.0.0'): ?array
     {
@@ -524,11 +525,12 @@ class YzOpenSdk
     /**
      * @param int $points
      * @param string $id mobile or fans_id
+     * @param bool $isOpenUserId
      * @param string $version
      * @return bool
      * @throws \Exception
      */
-    public function pointIncrease(int $points, string $id, string $version='3.0.1'): bool
+    public function pointIncrease(int $points, string $id, bool $isOpenUserId = false, string $version='3.0.1'): bool
     {
         $method = 'youzan.crm.customer.points.increase';
 
@@ -536,9 +538,11 @@ class YzOpenSdk
             'points' => $points
         ];
 
-        if (preg_match('/^1[3-9]\d{9}$/',$id)) {
+        if ($isOpenUserId) {
+            $params['open_user_id'] = $id;
+        } else if (preg_match('/^1[3-9]\d{9}$/',$id)) {
             $params['mobile'] = $id;
-        }else {
+        } else {
             $params['fans_id'] = $id;
         }
 
@@ -690,6 +694,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
+     * todo: enhance params in version 2
      */
     public function takeCoupon(array $params, string $version='3.0.0'): ?array
     {
@@ -704,6 +709,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
+     * todo: enhance params in version 2
      */
     public function getCouponList(array $params = [], string $version = '3.0.0'): ?array
     {
@@ -718,6 +724,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
+     * todo: enhance params in version 2
      */
     public function getSalesman(array $params = [], string $version = '3.0.0'): ?array
     {
@@ -731,6 +738,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
+     * todo: enhance params in version 2
      */
     public function getSalesmanList(array $params = [], string $version = '3.0.0'): ?array
     {
@@ -747,6 +755,9 @@ class YzOpenSdk
      */
     public function itemCreate(array $params, string $version = '3.0.0'): ?array
     {
+        if (empty($params['desc']) || empty($params['image_ids']) || empty($params['price']) || empty($params['title'])) {
+            throw new \LogicException('fields [desc],[image_ids],[price],[title] are required');
+        }
         $method = 'youzan.item.create';
         return $this->post($method, $version, $params, 'response.item');
     }
@@ -772,15 +783,15 @@ class YzOpenSdk
 
     /**
      * 更新商品
-     * @param $params
+     * @param array $params
      * @param string $version
-     * @return array|null
+     * @return bool
      * @throws \Exception
      */
     public function itemUpdate(array $params, string $version = '3.0.0'): bool
     {
         if (empty($params['item_id'])) {
-            throw new \RuntimeException('item_id is required');
+            throw new \LogicException('item_id is required');
         }
         $method = 'youzan.item.update';
         $result = $this->post($method, $version, $params, 'response');
@@ -797,6 +808,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
+     * todo: enhance params in version 2
      */
     public function itemGet(array $params, string $version = '3.0.0'): ?array
     {
@@ -850,7 +862,7 @@ class YzOpenSdk
     public function skuUpdate(array $params, string $version = '3.0.0'): bool
     {
         if (empty($params['item_id']) || empty($params['sku_id'])) {
-            throw new \RuntimeException('item_id and sku_id are required');
+            throw new \LogicException('item_id and sku_id are required');
         }
         $method = 'youzan.item.sku.update';
         $result = $this->post($method, $version, $params);
@@ -883,7 +895,7 @@ class YzOpenSdk
 
     /**
      * 上传图片
-     * @param array $params
+     * @param array $files
      * @param string $version
      * @return array|null
      * @throws \Exception
@@ -903,6 +915,7 @@ class YzOpenSdk
      * @param string $version
      * @return array|null
      * @throws \Exception
+     * todo: enhance param refund_fee in version 2
      */
     public function tradeRefund(string $desc, string $oid, string $refund_fee, string $tid, string $version = '3.0.0'): ?array
     {
@@ -989,6 +1002,9 @@ class YzOpenSdk
      */
     public function ticketVerify(array $params, $version = '1.0.0'): bool
     {
+        if (empty($params['tickets']) || empty($params['orderNo'])) {
+            throw new \LogicException('fields [tickets],[orderNo] are required');
+        }
         $method = 'youzan.ebiz.external.ticket.verify';
         $result = $this->post($method, $version, $params);
         if ($result) {
