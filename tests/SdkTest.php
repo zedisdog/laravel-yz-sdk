@@ -8,8 +8,98 @@
 
 namespace Dezsidog\YzSdk\Test;
 
+use Dezsidog\YzSdk\YzOpenSdk;
+use Illuminate\Config\Repository;
+use Illuminate\Http\Request;
+use Mockery\MockInterface;
+use Youzan\Open\Client;
+
 class SdkTest extends TestCase
 {
+    /**
+     * @throws \ReflectionException
+     */
+    public function testDiscoverySellerId()
+    {
+        $client = \Mockery::mock('overload:' . Client::class);
+        $sdk = $this->mockSdk();
+
+        $method = new \ReflectionMethod(YzOpenSdk::class, 'discoverySellerId');
+        $method->setAccessible(true);
+        $method->invoke($sdk);
+    }
+    public function testTryTokenCache()
+    {
+        $this->mockSdk();
+        $this->cache->shouldNotHaveReceived('get', ['yz_seller_1_access_token']);
+        $this->cache->shouldNotHaveReceived('get', ['yz_seller_1_refresh_token']);
+        $request = \Mockery::mock(Request::class)->shouldAllowMockingProtectedMethods();
+        $request->shouldReceive('input', ['kdt_id'])->andReturn(1);
+        $request->shouldReceive('has', ['kdt_id'])->andReturn(true);
+        $this->mockSdk([], ['request' => $request]);
+        $this->cache->shouldHaveReceived('get', ['yz_seller_1_access_token']);
+        $this->cache->shouldHaveReceived('get', ['yz_seller_1_refresh_token']);
+    }
+
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \ReflectionException
+     */
+    public function testBuildTypeAndKeys()
+    {
+        $refMethod = new \ReflectionMethod(YzOpenSdk::class, 'buildTypeAndKeys');
+        $refMethod->setAccessible(true);
+
+        // 测试refresh流程
+        $sdk = $this->mockSdk(['getRefreshToken']);
+        $sdk->shouldReceive('getRefreshToken')->andReturn('test_refresh_token');
+        [$type, $keys] = $refMethod->invoke($sdk);
+        $this->assertEquals('refresh_token', $type);
+        $this->assertEquals([
+            'redirect_uri' => 'http://test_url.com',
+            'refresh_token' => 'test_refresh_token'
+        ], $keys);
+
+        // 测试oauth流程
+        $request = \Mockery::mock(Request::class);
+        $request->shouldReceive('has')->andReturn(true);
+        $request->shouldReceive('input')->andReturn('test_code');
+        $sdk = $this->mockSdk([], ['request' => $request]);
+        [$type, $keys] = $refMethod->invoke($sdk);
+        $this->assertEquals('oauth', $type);
+        $this->assertEquals([
+            'code' => 'test_code',
+            'redirect_uri' => 'http://test_url.com'
+        ], $keys);
+
+        // 测试单用户流程
+        $config = \Mockery::mock(Repository::class);
+        $config->shouldReceive('get')->with('yz.multi_seller')->andReturn(false);
+        $config->shouldReceive('get')->with('yz.kdt_id')->andReturn(1);
+        $sdk = $this->mockSdk([], ['config' => $config]);
+        [$type, $keys] = $refMethod->invoke($sdk);
+        $this->assertEquals('self', $type);
+        $this->assertEquals(['kdt_id' => 1], $keys);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     * @throws \ReflectionException
+     */
+    public function testErrorWhenNoAccessTokenAndRefreshToken()
+    {
+        $refMethod = new \ReflectionMethod(YzOpenSdk::class, 'buildTypeAndKeys');
+        $refMethod->setAccessible(true);
+
+        // 测试refresh流程
+        $sdk = $this->mockSdk();
+        [$type, $keys] = $refMethod->invoke($sdk);
+        $this->assertEquals('refresh_token', $type);
+        $this->assertEquals([
+            'redirect_uri' => 'http://test_url.com',
+            'refresh_token' => 'test_refresh_token'
+        ], $keys);
+    }
     /**
      * @throws \Exception
      */
