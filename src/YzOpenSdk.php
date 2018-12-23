@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace Dezsidog\YzSdk;
 
 
-use Illuminate\Cache\CacheManager;
+use Dezsidog\YzSdk\Bridge\LaravelCache;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
@@ -581,7 +581,7 @@ class YzOpenSdk
     {
         /**
          * @var Request $request
-         * @var CacheManager $cache
+         * @var LaravelCache $cache
          */
         $request = $this->request;
         $cache = $this->cache;
@@ -628,7 +628,7 @@ class YzOpenSdk
         $client = new Client($this->getToken());
         $result = $this->checkError($client->post($method, $version, $params, $files));
 
-        $logger = $this->app->make('log');
+        $logger = $this->log;
         $logger->info('yz_api_call', ['method' => $method,'params' => $params,'response_field' => $response_field, 'result' => $result]);
 
         return $result ? array_get($result, $response_field) : $result;

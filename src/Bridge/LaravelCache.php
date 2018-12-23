@@ -33,9 +33,9 @@ class LaravelCache implements CacheInterface
 
     protected function parseTagAndKey($str): array
     {
-        $items = explode($str, '_');
-        $tag = array_slice($items, 0, 3);
-        $key = array_slice($items, 3);
+        $items = explode('_', $str);
+        $tag = implode('_', array_slice($items, 0, 3));
+        $key = implode('_', array_slice($items, 3));
         return [$tag, $key];
     }
 
