@@ -9,6 +9,7 @@ namespace Dezsidog\YzSdk\Bridge;
 
 use Illuminate\Cache\RedisTaggedCache;
 use Illuminate\Cache\Repository;
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Cache\TaggedCache;
 use Illuminate\Contracts\Cache\Store;
 use Psr\SimpleCache\CacheInterface;
@@ -18,16 +19,16 @@ class LaravelCache implements CacheInterface
     /**
      * @var Repository|TaggedCache|RedisTaggedCache
      */
-    protected $laravelCache;
+    protected $laravelStore;
 
     public function __construct(Store $cache)
     {
-        $this->laravelCache = $cache;
+        $this->laravelStore = $cache;
     }
 
     public function isTagable()
     {
-        return $this->laravelCache instanceof TaggedCache;
+        return $this->laravelStore instanceof TaggableStore;
     }
 
     protected function parseTagAndKey($str): array
@@ -53,7 +54,7 @@ class LaravelCache implements CacheInterface
     {
         if ($this->isTagable()) {
             [$tag, $key] = $this->parseTagAndKey($key);
-            $value = $this->laravelCache->tags($tag)->get($key);
+            $value = $this->laravelStore->tags($tag)->get($key);
         } else {
             $value = $this->get($key);
         }
@@ -83,9 +84,9 @@ class LaravelCache implements CacheInterface
     {
         if ($this->isTagable()) {
             [$tag, $key] = $this->parseTagAndKey($key);
-            return $this->laravelCache->tags($tag)->set($key, $value, $ttl);
+            return $this->laravelStore->tags($tag)->set($key, $value, $ttl);
         } else {
-            return $this->laravelCache->set($key, $value, $ttl);
+            return $this->laravelStore->set($key, $value, $ttl);
         }
     }
 
@@ -103,9 +104,9 @@ class LaravelCache implements CacheInterface
     {
         if ($this->isTagable()) {
             [$tag, $key] = $this->parseTagAndKey($key);
-            return $this->laravelCache->tags(implode('_', $tag))->delete(implode('_', $key));
+            return $this->laravelStore->tags(implode('_', $tag))->delete(implode('_', $key));
         } else {
-            return $this->laravelCache->delete($key);
+            return $this->laravelStore->delete($key);
         }
     }
 
@@ -116,7 +117,7 @@ class LaravelCache implements CacheInterface
      */
     public function clear(): bool
     {
-        return $this->laravelCache->clear();
+        return $this->laravelStore->clear();
     }
 
     /**
@@ -214,7 +215,7 @@ class LaravelCache implements CacheInterface
     {
         if ($this->isTagable()) {
             [$tag, $key] = $this->parseTagAndKey($key);
-            return $this->laravelCache->tags($tag)->has($key);
+            return $this->laravelStore->tags($tag)->has($key);
         } else {
             return $this->has($key);
         }
