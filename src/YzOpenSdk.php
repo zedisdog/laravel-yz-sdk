@@ -13,6 +13,7 @@ use Illuminate\Cache\CacheManager;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Log\LogManager;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\RequestInterface;
@@ -69,6 +70,10 @@ class YzOpenSdk
      * @var YzToken
      */
     protected $yz_token;
+    /**
+     * @var LogManager
+     */
+    protected $log;
 
     /**
      * @var array
@@ -80,21 +85,23 @@ class YzOpenSdk
 
     /**
      * YzOpenSdk constructor.
-     * @param CacheInterface $cache
      * @param Repository $config
      * @param ServerRequestInterface|\Symfony\Component\HttpFoundation\Request|Request $request
      * @param YzToken $yz_token
      * @param UrlGenerator $url_generator
+     * @param CacheInterface $cache
+     * @param LogManager $log
      * @param string|null $access_token
      * @param string|null $refresh_token
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function __construct(
-        CacheInterface $cache,
         Repository $config,
         $request,
         YzToken $yz_token,
-        UrlGenerator $url_generator = null,
+        UrlGenerator $url_generator,
+        CacheInterface $cache,
+        LogManager $log,
         ?string $access_token = null,
         ?string $refresh_token = null
     )
@@ -217,7 +224,7 @@ class YzOpenSdk
                 $cache = $this->cache;
                 $this->access_token = $this->origin_data['access_token'];
                 if ($config->get('yz.multi_seller')) {
-                    $this->discoverySellerId();
+                    $this->seller_id = $this->discoverySellerId();
                     $cache->set('yz_seller_' . $this->seller_id . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
                 } else {
                     $this->seller_id = $keys['kdt_id'];
@@ -243,11 +250,11 @@ class YzOpenSdk
         $client = new Client($this->access_token);
         $info = $this->checkError($client->post('youzan.shop.get', '3.0.0', []));
 
-        $logger = $this->app->make('log');
+        $logger = $this->log;
         $logger->info('yz_api_call', ['method' => 'youzan.shop.get','params' => [],'response_field' => 'response', 'result' => $info]);
 
         $info = array_get($info, 'response');
-        $this->seller_id = $info['id'];
+        return $info['id'];
     }
 
     /**
@@ -355,18 +362,6 @@ class YzOpenSdk
      */
     public function getShopInfo(string $version = '3.0.0'): ?array
     {
-        return $this->getUserInfo($version);
-    }
-
-    /**
-     * 获取店铺信息
-     * @param string $version
-     * @return array|null
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @deprecated 1.0.0 will remove in version 2
-     */
-    public function getUserInfo($version = '3.0.0'): ?array
-    {
         $method = 'youzan.shop.get';
 
         /*
@@ -405,18 +400,6 @@ class YzOpenSdk
      */
     public function getItemCategories(string $version='3.0.0'): ?array
     {
-        return $this->getType($version);
-    }
-
-    /**
-     * 获取商品类目列表
-     * @param string $version
-     * @return array|null
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @deprecated 1.0.0 will remove in version 2
-     */
-    public function getType(string $version='3.0.0'): ?array
-    {
         $method = 'youzan.itemcategories.get';
 
         return $this->post($method, $version, [], 'response.categories');
@@ -454,7 +437,7 @@ class YzOpenSdk
      * @param array $params
      * @param string $version
      * @return array|null
-     * @throws \Exception
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getProducts(array $params = ['page_size' => 300], string $version='3.0.0'): ?array
     {
@@ -472,37 +455,9 @@ class YzOpenSdk
      */
     public function getShopBaseInfo($version = '3.0.0'): ?array
     {
-        return $this->getUserBasicInfo($version);
-    }
-
-    /**
-     * 获取店铺基础信息
-     * @param string $version
-     * @return array|null
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @deprecated 1.0.0 will remove in version 2
-     */
-    public function getUserBasicInfo($version = '3.0.0'): ?array
-    {
         $method = 'youzan.shop.basic.get';
 
         return $this->post($method, $version);
-    }
-
-    /**
-     * @param string $method
-     * @param string $version
-     * @param string $response_field
-     * @return mixed
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * todo: remove
-     */
-    private function get(string $method, string $version, $response_field = 'response')
-    {
-        $client = new Client($this->getToken());
-        $result = $this->checkError($client->get($method, $version));
-
-        return array_get($result, $response_field);
     }
 
     /**
@@ -560,29 +515,15 @@ class YzOpenSdk
      * 是否存在token
      * @param $seller_id
      * @return bool
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function hasToken($seller_id = null): bool
     {
-        /**
-         * @var Repository $config
-         */
-        $config = $this->config;
         if (!$seller_id) {
             $seller_id = $this->seller_id;
         }
-        /**
-         * @var CacheManager $cache
-         */
-        $cache = $this->app->make('cache');
-        if ($config->get('yz.multi_seller')) {
-            if ($cache->getDefaultDriver() == 'redis') {
-                return $cache->tags('yz_seller_' . $seller_id)->has('refresh_token');
-            } else {
-                return $cache->has('yz_seller_' . $seller_id . '_refresh_token');
-            }
-        } else {
-            return $cache->has('yz_refresh_token');
-        }
+
+        return $this->cache->has('yz_seller_'.$seller_id.'_refresh_token');
     }
 
     /**
@@ -621,6 +562,11 @@ class YzOpenSdk
         }
     }
 
+    /**
+     * @param $seller_id
+     * @return $this
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function setSellerId($seller_id)
     {
         $this->seller_id = $seller_id;

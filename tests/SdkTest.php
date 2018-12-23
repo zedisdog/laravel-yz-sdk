@@ -8,10 +8,10 @@
 
 namespace Dezsidog\YzSdk\Test;
 
+use Dezsidog\YzSdk\Bridge\LaravelCache;
 use Dezsidog\YzSdk\YzOpenSdk;
 use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
-use Mockery\MockInterface;
 use Youzan\Open\Client;
 
 class SdkTest extends TestCase
@@ -22,12 +22,58 @@ class SdkTest extends TestCase
     public function testDiscoverySellerId()
     {
         $client = \Mockery::mock('overload:' . Client::class);
+        $client->shouldReceive('post')->andReturn(json_decode('{
+          "response": {
+            "id": "18898637",
+            "name": "卡门测试内部专用店铺",
+            "logo": "https://img.yzcdn.cn/public_files/2016/05/13/8f9c442de8666f82abaf7dd71574e997.png",
+            "intro": ""
+          }
+        }',true));
         $sdk = $this->mockSdk();
 
         $method = new \ReflectionMethod(YzOpenSdk::class, 'discoverySellerId');
         $method->setAccessible(true);
-        $method->invoke($sdk);
+        $seller_id = $method->invoke($sdk);
+        $this->assertEquals(18898637, $seller_id);
     }
+
+    public function testGetToken()
+    {
+        $client = \Mockery::mock('overload:' . Client::class);
+        $client->shouldReceive('post')->andReturn(json_decode('{
+          "response": {
+            "id": "18898637",
+            "name": "卡门测试内部专用店铺",
+            "logo": "https://img.yzcdn.cn/public_files/2016/05/13/8f9c442de8666f82abaf7dd71574e997.png",
+            "intro": ""
+          }
+        }',true));
+        $request = \Mockery::mock(Request::class)->shouldAllowMockingProtectedMethods();
+        $request->shouldReceive('has')->with('code')->andReturn(true);
+        $request->shouldReceive('input')->with('code')->andReturn('test_code');
+        $request->shouldReceive('has')->with('kdt_id')->andReturn(false);
+
+        $cache = \Mockery::mock(LaravelCache::class)->shouldAllowMockingProtectedMethods();
+        $cache->shouldReceive('set');
+
+        $sdk = $this->mockSdk([], [
+            'request' => $request,
+            'cache' => $cache
+        ]);
+        $sdk->getToken();
+        $cache->shouldHaveReceived('set', [
+            'yz_seller_18898637_access_token',
+            'test_access_token',
+            10080
+        ]);
+        $cache->shouldHaveReceived('set', [
+            'yz_seller_18898637_refresh_token',
+            'test_refresh_token',
+            40320
+        ]);
+    }
+
     public function testTryTokenCache()
     {
         $this->mockSdk();
@@ -42,7 +88,6 @@ class SdkTest extends TestCase
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \ReflectionException
      */
     public function testBuildTypeAndKeys()
@@ -107,7 +152,7 @@ class SdkTest extends TestCase
     {
         $sdk = $this->mockSdk(['post']);
         $sdk->shouldReceive('post')->andReturn([
-            "kdt_id" => $this->kdt_id,
+            "kdt_id" => 1234567890,
             "image_url" => "http://img.yzcdn.cn/upload_files/2017/06/08/FhJ5xShUa7ac0Ptamhg6La164JV_.jpg",
             "image_id" => 14537
         ]);
@@ -118,7 +163,7 @@ class SdkTest extends TestCase
             ]
         ];
         $result = $sdk->imageUpload($param);
-        $this->assertEquals($this->kdt_id, $result['kdt_id']);
+        $this->assertEquals(1234567890, $result['kdt_id']);
         $this->assertNotEmpty($result['image_url']);
         $this->assertNotEmpty($result['image_id']);
     }
