@@ -30,7 +30,7 @@ class YzSdkServiceProvider extends ServiceProvider
                 $app->make('request'),
                 new Token($config->get('yz.client_id'), $config->get('yz.client_secret')),
                 $app->make(UrlGenerator::class),
-                $app->make('cache'),
+                $app->make('cache')->store(),
                 $app->make('log')
             );
         });
