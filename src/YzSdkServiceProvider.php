@@ -9,6 +9,7 @@
 namespace Dezsidog\YzSdk;
 
 
+use Dezsidog\YzSdk\Bridge\LaravelCache;
 use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
@@ -30,7 +31,7 @@ class YzSdkServiceProvider extends ServiceProvider
                 $app->make('request'),
                 new Token($config->get('yz.client_id'), $config->get('yz.client_secret')),
                 $app->make(UrlGenerator::class),
-                $app->make('cache')->store(),
+                new LaravelCache($app->make('cache')->store()),
                 $app->make('log')
             );
         });
