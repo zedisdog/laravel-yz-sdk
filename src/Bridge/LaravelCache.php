@@ -56,7 +56,7 @@ class LaravelCache implements CacheInterface
             [$tag, $key] = $this->parseTagAndKey($key);
             $value = $this->laravelStore->tags($tag)->get($key);
         } else {
-            $value = $this->get($key);
+            $value = $this->get('yz_access_token');
         }
 
         if (is_null($value)) {
@@ -86,7 +86,7 @@ class LaravelCache implements CacheInterface
             [$tag, $key] = $this->parseTagAndKey($key);
             return $this->laravelStore->tags($tag)->set($key, $value, $ttl);
         } else {
-            return $this->laravelStore->set($key, $value, $ttl);
+            return $this->laravelStore->set('yz_access_token', $value, $ttl);
         }
     }
 
@@ -106,7 +106,7 @@ class LaravelCache implements CacheInterface
             [$tag, $key] = $this->parseTagAndKey($key);
             return $this->laravelStore->tags(implode('_', $tag))->delete(implode('_', $key));
         } else {
-            return $this->laravelStore->delete($key);
+            return $this->laravelStore->delete('yz_access_token');
         }
     }
 
@@ -217,7 +217,7 @@ class LaravelCache implements CacheInterface
             [$tag, $key] = $this->parseTagAndKey($key);
             return $this->laravelStore->tags($tag)->has($key);
         } else {
-            return $this->has($key);
+            return $this->has('yz_access_token');
         }
     }
 }
