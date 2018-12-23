@@ -18,8 +18,8 @@ class YzSdkServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->singleton(YzOpenSdk::class,function($app){
-            return new YzOpenSdk($app);
+        $this->app->singleton(YzOpenSdk::class,function(Application $app){
+            return new YzOpenSdk($app, $app->make('cache'));
         });
     }
 
