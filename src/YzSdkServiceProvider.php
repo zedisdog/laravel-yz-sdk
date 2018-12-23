@@ -31,7 +31,7 @@ class YzSdkServiceProvider extends ServiceProvider
                 $app->make('request'),
                 new Token($config->get('yz.client_id'), $config->get('yz.client_secret')),
                 $app->make(UrlGenerator::class),
-                new LaravelCache($app->make('cache')->store()),
+                new LaravelCache($app->make('cache')->getStore()),
                 $app->make('log')
             );
         });
