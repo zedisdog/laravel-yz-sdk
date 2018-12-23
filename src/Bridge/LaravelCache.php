@@ -10,6 +10,7 @@ namespace Dezsidog\YzSdk\Bridge;
 use Illuminate\Cache\RedisTaggedCache;
 use Illuminate\Cache\Repository;
 use Illuminate\Cache\TaggedCache;
+use Illuminate\Contracts\Cache\Store;
 use Psr\SimpleCache\CacheInterface;
 
 class LaravelCache implements CacheInterface
@@ -19,7 +20,7 @@ class LaravelCache implements CacheInterface
      */
     protected $laravelCache;
 
-    public function __construct(Repository $cache)
+    public function __construct(Store $cache)
     {
         $this->laravelCache = $cache;
     }
