@@ -283,25 +283,6 @@ class YzOpenSdk
     }
 
     /**
-     * 获取单个商品信息
-     * @param int $product_id
-     * @param string $version
-     * @return array|null
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @deprecated 1.2.3 will remove in version 2
-     */
-    public function getProduct(int $product_id, string $version='3.0.0'): ?array
-    {
-        $method = 'youzan.item.get';
-
-        $params = [
-            'item_id' => $product_id,
-        ];
-
-        return $this->post($method, $version, $params, 'response.item');
-    }
-
-    /**
      * 通过 open_id 或者 fans_id 获取用户信息
      * @param integer|string $id fans_id或者open_id
      * @param string $version
@@ -492,13 +473,13 @@ class YzOpenSdk
     /**
      * 向用户发送赠品
      * @param string $activity_id 赠品活动id
-     * @param string $fans_id 粉丝id或有赞id
+     * @param integer|string $identification fans_id或buyer_id
+     * @param bool $is_buyer_id 是否是buyer_id
      * @param string $version 版本
      * @return array|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
-     * todo: add param buyer_id in version 2
      */
-    public function givePresent(string $activity_id, string $fans_id, $version='3.0.0'): ?array
+    public function givePresent(string $activity_id, $identification, $is_buyer_id = false, $version='3.0.0'): ?array
     {
         $method = 'youzan.ump.present.give';
 
@@ -506,7 +487,11 @@ class YzOpenSdk
             'activity_id' => $activity_id
         ];
 
-        $params['fans_id'] = $fans_id;
+        if ($is_buyer_id) {
+            $params['buyer_id'] = $identification;
+        } else {
+            $params['fans_id'] = $identification;
+        }
 
         return $this->post($method, $version, $params);
     }
@@ -529,12 +514,12 @@ class YzOpenSdk
     /**
      * @param int $points
      * @param string $id mobile or fans_id
-     * @param bool $isOpenUserId
+     * @param bool $is_open_user_id
      * @param string $version
      * @return bool
      * @throws \Psr\SimpleCache\InvalidArgumentException
      */
-    public function pointIncrease(int $points, string $id, bool $isOpenUserId = false, string $version='3.0.1'): bool
+    public function pointIncrease(int $points, string $id, bool $is_open_user_id = false, string $version='3.0.1'): bool
     {
         $method = 'youzan.crm.customer.points.increase';
 
@@ -542,9 +527,9 @@ class YzOpenSdk
             'points' => $points
         ];
 
-        if ($isOpenUserId) {
+        if ($is_open_user_id) {
             $params['open_user_id'] = $id;
-        } else if (preg_match('/^1[3-9]\d{9}$/',$id)) {
+        } else if (is_string($id) && preg_match('/^1[3-9]\d{9}$/',$id)) {
             $params['mobile'] = $id;
         } else {
             $params['fans_id'] = $id;
@@ -688,59 +673,123 @@ class YzOpenSdk
 
     /**
      * 发放优惠券/码
-     * @param array $params
+     * @param integer|string $coupon_group_id 优惠券码组id
+     * @param integer|string $identification fans_id|mobile|open_user_id|weixin_openid
+     * @param bool $is_open_user_id
      * @param string $version
      * @return array|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
-     * todo: enhance params in version 2
      */
-    public function takeCoupon(array $params, string $version='3.0.0'): ?array
+    public function takeCoupon($coupon_group_id, $identification, $is_open_user_id = false, string $version='3.0.0'): ?array
     {
         $method = 'youzan.ump.coupon.take';
+        $params['coupon_group_id'] = $coupon_group_id;
+        if ($is_open_user_id) {
+            $params['open_user_id'] = $identification;
+        } elseif (is_string($identification) && preg_match('/^1[3-9]\d{9}$/',$identification)) {
+            $params['mobile'] = $identification;
+        } elseif (is_string($identification) && preg_match('/[a-zA-Z]/', $identification)) {
+            $params['weixin_openid'] = $identification;
+        } else {
+            $params['fans_id'] = $identification;
+        }
+
         return $this->post($method, $version, $params);
     }
 
     /**
      * （分页查询）查询优惠券（码）活动列表
-     * @param array $params
+     * @param string $group_type 活动类型 PROMOCARD 优惠券，PROMOCODE 优惠码
+     * @param string $status 活动状态 FUTURE 未开始 ,END 已结束,ON 进行中 （默认查所有状态）
+     * @param int $page_size 每页数量
+     * @param int $page_no 第几页
      * @param string $version
      * @return array|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Exception
      * todo: 返回一个分页对象以供查询,这个对象可以迭代
-     * todo: enhance params in version 2
      */
-    public function getCouponList(array $params = [], string $version = '3.0.0'): ?array
+    public function getCouponList(string $group_type = '', string $status = '', int $page_no = 1, int $page_size = 1000, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.ump.coupon.search';
-        $params = array_merge(['page_no' => 1, 'page_size' => 1000], $params);
+
+        $group_type = strtoupper($group_type);
+        $status = strtoupper($status);
+
+        $group_type_options = [
+            '',
+            'PROMOCARD',
+            'PROMOCODE'
+        ];
+
+        if (!in_array($group_type, $group_type_options)) {
+            throw new \Exception('params [group_type]('. $group_type .') most be one of [PROMOCARD,PROMOCODE]');
+        }
+
+        $status_options = [
+            '',
+            'FUTURE',
+            'END',
+            'ON'
+        ];
+
+        if (!in_array($status, $status_options)) {
+            throw new \Exception('params [status]('. $status .') most be one of [FUTURE,END,ON]');
+        }
+
+        $params = [
+            'page_no' => $page_no,
+            'page_size' => $page_size
+        ];
+        if ($status) {
+            $params['status'] = $status;
+        }
+        if ($group_type) {
+            $params['group_type'] = $group_type;
+        }
+
         return $this->post($method, $version, $params, 'response.groups');
     }
 
     /**
      * 获取分销员信息
-     * @param array $params
+     * @param integer|string $identification fans_id|mobile
+     * @param int $fans_type 粉丝类型 默认1
      * @param string $version
      * @return array|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
-     * todo: enhance params in version 2
      */
-    public function getSalesman(array $params = [], string $version = '3.0.0'): ?array
+    public function getSalesman($identification, int $fans_type = 1, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.salesman.account.get';
+        $params = [
+            'fans_type' => $fans_type
+        ];
+        if (is_string($identification) && preg_match('/^1[3-9]\d{9}$/', $identification)) {
+            $params['mobile'] = $identification;
+            $params['fans_id'] = 0;
+        } else {
+            $params['fans_id'] = $identification;
+            $params['mobile'] = '0';
+        }
         return $this->post($method, $version, $params);
     }
 
     /**
      * 获取分销员列表
-     * @param array $params
+     * @param int $page_no
+     * @param int $page_size
      * @param string $version
      * @return array|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
-     * todo: enhance params in version 2
      */
-    public function getSalesmanList(array $params = [], string $version = '3.0.0'): ?array
+    public function getSalesmanList($page_no = 1, $page_size = 100, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.salesman.accounts.get';
+        $params = [
+            'page_no' => $page_no,
+            'page_size' => $page_size
+        ];
         return $this->post($method, $version, $params);
     }
 
@@ -802,15 +851,24 @@ class YzOpenSdk
 
     /**
      * 获取商品
-     * @param array $params
+     * @param integer|string $identification 标识
+     * @param bool $alias 是否是别名
      * @param string $version
      * @return array|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
-     * todo: enhance params in version 2
      */
-    public function itemGet(array $params, string $version = '3.0.0'): ?array
+    public function itemGet($identification, $alias = false, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.item.get';
+        if ($alias) {
+            $params = [
+                'alias' => $identification
+            ];
+        } else {
+            $params = [
+                'item_id' => $identification
+            ];
+        }
         return $this->post($method, $version, $params, 'response.item');
     }
 
@@ -908,17 +966,17 @@ class YzOpenSdk
      * 主动退款
      * @param string $desc
      * @param string $oid
-     * @param string $refund_fee
+     * @param int $refund_fee 退款金额，单位分
      * @param string $tid
      * @param string $version
      * @return array|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
-     * todo: enhance param refund_fee in version 2
      */
-    public function tradeRefund(string $desc, string $oid, string $refund_fee, string $tid, string $version = '3.0.0'): ?array
+    public function tradeRefund(string $desc, string $oid, int $refund_fee, string $tid, string $version = '3.0.0'): ?array
     {
         $method = 'youzan.trade.refund.seller.active';
-        $params = compact('desc', 'oid', 'refund_fee', 'tid');
+        $params = compact('desc', 'oid', 'tid');
+        $params['refund_fee'] = sprintf('%.2f', $refund_fee/100.00);
         return $this->post($method, $version, $params);
     }
 

@@ -383,9 +383,25 @@ class SdkTest extends TestCase
             'desc' => 'test product',
             'cid' => 8000001,
         ]);
-        $result = $sdk->itemGet(['item_id' => 1387684]);
+        $result = $sdk->itemGet(1387684);
         $this->assertEquals($result['desc'], 'test product');
         $this->assertEquals($result['title'], 'test product');
+        $sdk->shouldHaveReceived('post', [
+            'youzan.item.get',
+            '3.0.0',
+            ['item_id' => 1387684],
+            'response.item'
+        ]);
+
+        $result = $sdk->itemGet('1y584nimrxbj3', true);
+        $this->assertEquals($result['desc'], 'test product');
+        $this->assertEquals($result['title'], 'test product');
+        $sdk->shouldHaveReceived('post', [
+            'youzan.item.get',
+            '3.0.0',
+            ['alias' => '1y584nimrxbj3'],
+            'response.item'
+        ]);
     }
 
     /**
@@ -441,7 +457,7 @@ class SdkTest extends TestCase
             "is_success" => true,
             "refund_id" => "201804032029140000020485"
         ]);
-        $result = $sdk->tradeRefund('测试退款', '1474409360913335275', '0.01', 'E20180929163409008800001');
+        $result = $sdk->tradeRefund('测试退款', '1474409360913335275', 1, 'E20180929163409008800001');
         $this->assertTrue($result['is_success']);
         $this->assertNotEmpty($result['refund_id']);
     }
@@ -504,86 +520,6 @@ class SdkTest extends TestCase
             ],
             'response.user'
         ]);
-    }
-
-    public function testGetProduct()
-    {
-        $sdk = $this->mockSdk(['post']);
-        $sdk->shouldReceive('post')->andReturn([
-            'template' => [
-                'template_title' => '普通版',
-                'template_id' => 0,
-            ],
-            'auto_listing_time' => '1970-01-01 08:00:00',
-            'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=1y584nimrxbj3&from=wsc&kdtfrom=wsc',
-            'skus' => [
-                [
-                    'sku_unique_code' => '13876843316',
-                    'with_hold_quantity' => 0,
-                    'item_id' => 1387684,
-                    'created' => '1970-01-18:15:48:57',
-                    'price' => 10000,
-                    'stock_num' => 100,
-                    'properties_name_json' => '[{"vid":1217,"v":"绿色","kid":1,"k":"颜色"},{"vid":1367,"v":"l","kid":2,"k":"尺寸"},{"vid":303435,"v":"1024G","kid":41,"k":"内存"}]',
-                    'modified' => '1970-01-18:15:48:57',
-                    'sku_id' => 3316,
-                ],
-                [
-                    'sku_unique_code' => '13876843317',
-                    'with_hold_quantity' => 0,
-                    'item_id' => 1387684,
-                    'created' => '1970-01-18:15:48:57',
-                    'price' => 10000,
-                    'stock_num' => 100,
-                    'properties_name_json' => '[{"vid":1217,"v":"绿色","kid":1,"k":"颜色"},{"vid":1367,"v":"l","kid":2,"k":"尺寸"},{"vid":6356,"v":"16G","kid":41,"k":"内存"}]',
-                    'modified' => '1970-01-18:15:48:57',
-                    'sku_id' => 3317,
-                ],
-            ],
-            'post_fee' => 0,
-            'virtual_extend' => [
-                'effective_type' => 0,
-                'holidays_available' => true,
-            ],
-            'buy_quota' => 0,
-            'item_type' => 61,
-            'title' => 'test product',
-            'join_level_discount' => false,
-            'item_no' => '',
-            'kdt_id' => 191,
-            'purchase_right' => false,
-            'price' => 10000,
-            'presale_extend' => [],
-            'alias' => '1y584nimrxbj3',
-            'post_type' => 1,
-            'quantity' => 200,
-            'item_tags' => [],
-            'item_id' => 1387684,
-            'item_imgs' => [
-                [
-                    'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
-                    'created' => '2017-06-08 23:50:04',
-                    'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
-                    'id' => 1,
-                    'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
-                    'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
-                ],
-            ],
-            'fenxiao_extend' => [],
-            'is_listing' => false,
-            'sold_num' => 0,
-            'hotel_extend' => [],
-            'delivery_template_info' => [],
-            'share_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=1y584nimrxbj3&from=wsc&kdtfrom=wsc',
-            'pic_thumb_url' => 'https://img.yzcdn.cn/upload_files/no_pic.png!120x120.jpg',
-            'is_lock' => false,
-            'pic_url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
-            'desc' => 'test product',
-            'cid' => 8000001,
-        ]);
-        $result = $sdk->getProduct(1387684);
-        $this->assertEquals($result['desc'], 'test product');
-        $this->assertEquals($result['title'], 'test product');
     }
 
     public function testGetFollower()
@@ -1824,6 +1760,7 @@ class SdkTest extends TestCase
             "present_name" => "鸡蛋一枚",
             "receive_address" => "https://h5.youzan.com/v2/showcase/goods?alias=35vf98xpexgsm&present=1gkx4yiy1"
         ]);
+
         $result = $sdk->givePresent(1, 4851134360);
         $this->assertEquals([
             "is_success" => true,
@@ -1837,6 +1774,22 @@ class SdkTest extends TestCase
             [
                 'activity_id' => 1,
                 'fans_id' => 4851134360
+            ]
+        ]);
+
+        $result = $sdk->givePresent(1, 4851134360, true);
+        $this->assertEquals([
+            "is_success" => true,
+            "present_id" => 7026144,
+            "present_name" => "鸡蛋一枚",
+            "receive_address" => "https://h5.youzan.com/v2/showcase/goods?alias=35vf98xpexgsm&present=1gkx4yiy1"
+        ],$result);
+        $sdk->shouldHaveReceived('post', [
+            'youzan.ump.present.give',
+            '3.0.0',
+            [
+                'activity_id' => 1,
+                'buyer_id' => 4851134360
             ]
         ]);
     }
@@ -2262,9 +2215,48 @@ class SdkTest extends TestCase
                 'verify_code' => '792873936041',
             ],
         ]);
-        $result = $sdk->takeCoupon([
-            'fans_id' => '4851134360',
-            'coupon_group_id' => 1
+
+        $result = $sdk->takeCoupon(1, '4851134360');
+        $sdk->shouldHaveReceived('post', [
+            'youzan.ump.coupon.take',
+            '3.0.0',
+            [
+                'coupon_group_id' => 1,
+                'fans_id' => '4851134360'
+            ]
+        ]);
+        $this->assertEquals('10422654', $result['promocard']['promocard_id']);
+
+        $result = $sdk->takeCoupon(1, '15281009123');
+        $sdk->shouldHaveReceived('post', [
+            'youzan.ump.coupon.take',
+            '3.0.0',
+            [
+                'coupon_group_id' => 1,
+                'mobile' => '15281009123'
+            ]
+        ]);
+        $this->assertEquals('10422654', $result['promocard']['promocard_id']);
+
+        $result = $sdk->takeCoupon(1, '15281009123', true);
+        $sdk->shouldHaveReceived('post', [
+            'youzan.ump.coupon.take',
+            '3.0.0',
+            [
+                'coupon_group_id' => 1,
+                'open_user_id' => '15281009123'
+            ]
+        ]);
+        $this->assertEquals('10422654', $result['promocard']['promocard_id']);
+
+        $result = $sdk->takeCoupon(1, 'abc');
+        $sdk->shouldHaveReceived('post', [
+            'youzan.ump.coupon.take',
+            '3.0.0',
+            [
+                'coupon_group_id' => 1,
+                'weixin_openid' => 'abc'
+            ]
         ]);
         $this->assertEquals('10422654', $result['promocard']['promocard_id']);
     }
@@ -2409,6 +2401,15 @@ class SdkTest extends TestCase
         $result = $sdk->getCouponList();
         $this->assertNotEmpty($result);
         $this->assertCount(4, $result);
+        $sdk->shouldHaveReceived('post', [
+            'youzan.ump.coupon.search',
+            '3.0.0',
+            [
+                'page_no' => 1,
+                'page_size' => 1000
+            ],
+            'response.groups'
+        ]);
     }
 
     public function testGetSalesman()
@@ -2424,19 +2425,28 @@ class SdkTest extends TestCase
             'order_num' => 41,
             'fans_id' => 4851134360,
         ]);
-        $result = $sdk->getSalesman([
-            'mobile' => '15281009123',
-            'fans_type' => '1',
-            'fans_id' => '0'
-        ]);
+
+        $result = $sdk->getSalesman('15281009123');
         $this->assertEquals('15281009123', $result['mobile']);
         $sdk->shouldHaveReceived('post', [
             'youzan.salesman.account.get',
             '3.0.0',
             [
                 'mobile' => '15281009123',
-                'fans_type' => '1',
-                'fans_id' => '0'
+                'fans_type' => 1,
+                'fans_id' => 0
+            ]
+        ]);
+
+        $result = $sdk->getSalesman(1234567890);
+        $this->assertEquals('15281009123', $result['mobile']);
+        $sdk->shouldHaveReceived('post', [
+            'youzan.salesman.account.get',
+            '3.0.0',
+            [
+                'mobile' => '0',
+                'fans_type' => 1,
+                'fans_id' => 1234567890
             ]
         ]);
     }
