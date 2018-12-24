@@ -9,17 +9,31 @@
 namespace Dezsidog\YzSdk;
 
 
+use Dezsidog\YzSdk\Bridge\LaravelCache;
+use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\App;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
+use Youzan\Open\Token;
 
 class YzSdkServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->singleton(YzOpenSdk::class,function($app){
-            return new YzOpenSdk($app);
+        $this->app->singleton(YzOpenSdk::class,function(Application $app){
+            /**
+             * @var Repository $config
+             */
+            $config = $app->make('config');
+            return new YzOpenSdk(
+                $config,
+                $app->make('request'),
+                new Token($config->get('yz.client_id'), $config->get('yz.client_secret')),
+                $app->make(UrlGenerator::class),
+                new LaravelCache($app->make('cache')->getStore()),
+                $app->make('log')
+            );
         });
     }
 
