@@ -56,6 +56,7 @@ class SdkTest extends TestCase
 
         $cache = \Mockery::mock(LaravelCache::class)->shouldAllowMockingProtectedMethods();
         $cache->shouldReceive('set');
+        $cache->shouldReceive('get')->andReturn(null);
 
         $sdk = $this->mockSdk([], [
             'request' => $request,
