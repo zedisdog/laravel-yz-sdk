@@ -12,6 +12,7 @@ use Dezsidog\YzSdk\Bridge\LaravelCache;
 use Dezsidog\YzSdk\YzOpenSdk;
 use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
+use Mockery\MockInterface;
 use Youzan\Open\Client;
 
 class SdkTest extends TestCase
@@ -3309,6 +3310,324 @@ class SdkTest extends TestCase
         $sdk->shouldHaveReceived('getOnSaleItems', [
             ['page_size' => 300],
             '3.0.0'
+        ]);
+    }
+
+    public function testItemList()
+    {
+        $sdk = $this->mockSdk(['post']);
+        $sdk->shouldReceive('post')->andReturn([
+            'count' => 2,
+            'items' => [
+                [
+                    'created_time' => '2017-08-17 20:15:43',
+                    'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=2x7st5x7f001b',
+                    'quantity' => 11,
+                    'post_fee' => 0,
+                    'item_id' => 1775642,
+                    'item_type' => 0,
+                    'item_imgs' => [
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 9518,
+                            'url' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 1853,
+                            'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                    ],
+                    'title' => '214',
+                    'item_no' => '',
+                    'update_time' => '2017-08-21 10:52:57',
+                    'price' => 13200,
+                    'alias' => '2x7st5x7f001b',
+                    'post_type' => 1,
+                    'delivery_template' => [],
+                ],
+                [
+                    'created_time' => '2017-08-17 18:41:11',
+                    'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=2fld9o1o827m7',
+                    'quantity' => 100,
+                    'post_fee' => 0,
+                    'item_id' => 1774626,
+                    'item_type' => 0,
+                    'item_imgs' => [
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 1853,
+                            'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                    ],
+                    'title' => 'open api SKU图片测试1',
+                    'update_time' => '2017-08-17 18:41:11',
+                    'price' => 10000,
+                    'alias' => '2fld9o1o827m7',
+                    'post_type' => 1,
+                    'delivery_template' => [],
+                ],
+            ],
+        ]);
+        $result = $sdk->itemList();
+        $this->assertNotEmpty($result);
+        $this->assertCount($result['count'], $result['items']);
+        $sdk->shouldReceive('post', [
+            'youzan.item.search',
+            '3.0.0',
+            ['page_no' => 1, 'page_size' => 100]
+        ]);
+    }
+
+    public function testItemSearch()
+    {
+        $sdk = $this->mockSdk(['post']);
+        $sdk->shouldReceive('post')->andReturn([
+            'count' => 2,
+            'items' => [
+                [
+                    'created_time' => '2017-08-17 20:15:43',
+                    'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=2x7st5x7f001b',
+                    'quantity' => 11,
+                    'post_fee' => 0,
+                    'item_id' => 1775642,
+                    'item_type' => 0,
+                    'item_imgs' => [
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 9518,
+                            'url' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 1853,
+                            'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                    ],
+                    'title' => '214',
+                    'item_no' => '',
+                    'update_time' => '2017-08-21 10:52:57',
+                    'price' => 13200,
+                    'alias' => '2x7st5x7f001b',
+                    'post_type' => 1,
+                    'delivery_template' => [],
+                ],
+                [
+                    'created_time' => '2017-08-17 18:41:11',
+                    'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=2fld9o1o827m7',
+                    'quantity' => 100,
+                    'post_fee' => 0,
+                    'item_id' => 1774626,
+                    'item_type' => 0,
+                    'item_imgs' => [
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 1853,
+                            'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                    ],
+                    'title' => 'open api SKU图片测试1',
+                    'update_time' => '2017-08-17 18:41:11',
+                    'price' => 10000,
+                    'alias' => '2fld9o1o827m7',
+                    'post_type' => 1,
+                    'delivery_template' => [],
+                ],
+            ],
+        ]);
+        $result = $sdk->itemSearch('test_key_word');
+        $this->assertNotEmpty($result);
+        $this->assertCount($result['count'], $result['items']);
+        $sdk->shouldReceive('post', [
+            'youzan.item.search',
+            '3.0.0',
+            [
+                'q' => 'test_key_word',
+                'page_no' => 1,
+                'page_size' => 100
+            ]
+        ]);
+    }
+
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function testItemListByItemIds()
+    {
+        $sdk = $this->mockSdk(['post']);
+        $sdk->shouldReceive('post')->andReturn([
+            'count' => 2,
+            'items' => [
+                [
+                    'created_time' => '2017-08-17 20:15:43',
+                    'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=2x7st5x7f001b',
+                    'quantity' => 11,
+                    'post_fee' => 0,
+                    'item_id' => 1775642,
+                    'item_type' => 0,
+                    'item_imgs' => [
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 9518,
+                            'url' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 1853,
+                            'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                    ],
+                    'title' => '214',
+                    'item_no' => '',
+                    'update_time' => '2017-08-21 10:52:57',
+                    'price' => 13200,
+                    'alias' => '2x7st5x7f001b',
+                    'post_type' => 1,
+                    'delivery_template' => [],
+                ],
+                [
+                    'created_time' => '2017-08-17 18:41:11',
+                    'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=2fld9o1o827m7',
+                    'quantity' => 100,
+                    'post_fee' => 0,
+                    'item_id' => 1774626,
+                    'item_type' => 0,
+                    'item_imgs' => [
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 1853,
+                            'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                    ],
+                    'title' => 'open api SKU图片测试1',
+                    'update_time' => '2017-08-17 18:41:11',
+                    'price' => 10000,
+                    'alias' => '2fld9o1o827m7',
+                    'post_type' => 1,
+                    'delivery_template' => [],
+                ],
+            ],
+        ]);
+        $result = $sdk->itemListByItemIds([1, 2]);
+        $this->assertNotEmpty($result);
+        $this->assertCount($result['count'], $result['items']);
+        $sdk->shouldReceive('post', [
+            'youzan.item.search',
+            '3.0.0',
+            [
+                'item_ids' => '1,2',
+                'page_no' => 1,
+                'page_size' => 100
+            ]
+        ]);
+    }
+
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function testItemListByTagIds()
+    {
+        $sdk = $this->mockSdk(['post']);
+        $sdk->shouldReceive('post')->andReturn([
+            'count' => 2,
+            'items' => [
+                [
+                    'created_time' => '2017-08-17 20:15:43',
+                    'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=2x7st5x7f001b',
+                    'quantity' => 11,
+                    'post_fee' => 0,
+                    'item_id' => 1775642,
+                    'item_type' => 0,
+                    'item_imgs' => [
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 9518,
+                            'url' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/2017/03/28/Fl0iLVp0mplLa5TWwXTWJqYGI5C_.jpg?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 1853,
+                            'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                    ],
+                    'title' => '214',
+                    'item_no' => '',
+                    'update_time' => '2017-08-21 10:52:57',
+                    'price' => 13200,
+                    'alias' => '2x7st5x7f001b',
+                    'post_type' => 1,
+                    'delivery_template' => [],
+                ],
+                [
+                    'created_time' => '2017-08-17 18:41:11',
+                    'detail_url' => 'https://h5.youzan.com/v2/showcase/goods?alias=2fld9o1o827m7',
+                    'quantity' => 100,
+                    'post_fee' => 0,
+                    'item_id' => 1774626,
+                    'item_type' => 0,
+                    'item_imgs' => [
+                        [
+                            'thumbnail' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/290/h/290/q/75/format/jpg',
+                            'created' => '2017-08-22 10:21:52',
+                            'medium' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                            'id' => 1853,
+                            'url' => 'https://img.yzcdn.cn/upload_files/no_pic.png',
+                            'combine' => 'https://img.yzcdn.cn/upload_files/no_pic.png?imageView2/2/w/600/h/0/q/75/format/jpg',
+                        ],
+                    ],
+                    'title' => 'open api SKU图片测试1',
+                    'update_time' => '2017-08-17 18:41:11',
+                    'price' => 10000,
+                    'alias' => '2fld9o1o827m7',
+                    'post_type' => 1,
+                    'delivery_template' => [],
+                ],
+            ],
+        ]);
+        $result = $sdk->itemListByTagIds([1, 2]);
+        $this->assertNotEmpty($result);
+        $this->assertCount($result['count'], $result['items']);
+        $sdk->shouldReceive('post', [
+            'youzan.item.search',
+            '3.0.0',
+            [
+                'tag_ids' => '1,2',
+                'page_no' => 1,
+                'page_size' => 100
+            ]
         ]);
     }
 }

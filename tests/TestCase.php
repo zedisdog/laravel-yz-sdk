@@ -90,6 +90,11 @@ class TestCase extends \PHPUnit\Framework\TestCase
         $this->log->shouldReceive('info')->andReturn(true);
     }
 
+    /**
+     * @param array $methods
+     * @param array $params
+     * @return Mock|YzOpenSdk
+     */
     protected function mockSdk(array $methods = [], $params = [])
     {
         $methods = implode(',', $methods);
