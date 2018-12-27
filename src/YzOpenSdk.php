@@ -580,8 +580,10 @@ class YzOpenSdk
             $this->seller_id = $request->input('kdt_id');
         }
 
-        $this->access_token = $cache->get('yz_seller_' . $this->getSellerId().'_access_token');
-        $this->refresh_token = $cache->get('yz_seller_' . $this->getSellerId().'_refresh_token');
+        if ($this->getSellerId()) {
+            $this->access_token = $cache->get('yz_seller_' . $this->getSellerId().'_access_token');
+            $this->refresh_token = $cache->get('yz_seller_' . $this->getSellerId().'_refresh_token');
+        }
     }
 
     /**
