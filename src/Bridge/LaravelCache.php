@@ -80,7 +80,7 @@ class LaravelCache implements CacheInterface
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function set($key, $value, $ttl = null): bool
+    public function set($key, $value, $ttl = null): ?bool
     {
         if ($this->isTagable()) {
             [$tag, $key] = $this->parseTagAndKey($key);
@@ -168,7 +168,7 @@ class LaravelCache implements CacheInterface
      *   MUST be thrown if $values is neither an array nor a Traversable,
      *   or if any of the $values are not a legal value.
      */
-    public function setMultiple($values, $ttl = null): bool
+    public function setMultiple($values, $ttl = null): ?bool
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);

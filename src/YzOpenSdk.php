@@ -120,6 +120,11 @@ class YzOpenSdk
         }
     }
 
+    protected function getSellerId()
+    {
+        return $this->seller_id;
+    }
+
     protected function setRequest($request)
     {
         if ($request instanceof ServerRequestInterface) {
@@ -225,12 +230,12 @@ class YzOpenSdk
                 $this->access_token = $this->origin_data['access_token'];
                 if ($config->get('yz.multi_seller')) {
                     $this->seller_id = $this->discoverySellerId();
-                    $cache->set('yz_seller_' . $this->seller_id . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
+                    $cache->set('yz_seller_' . $this->getSellerId() . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
                 } else {
                     $this->seller_id = $keys['kdt_id'];
                 }
 
-                $cache->set('yz_seller_' . $this->seller_id . '_access_token', $this->access_token, $this->origin_data['expires_in']/60);
+                $cache->set('yz_seller_' . $this->getSellerId() . '_access_token', $this->access_token, $this->origin_data['expires_in']/60);
 
                 return $this->origin_data['access_token'];
             } else {
@@ -505,7 +510,7 @@ class YzOpenSdk
     public function hasToken($seller_id = null): bool
     {
         if (!$seller_id) {
-            $seller_id = $this->seller_id;
+            $seller_id = $this->getSellerId();
         }
 
         return $this->cache->has('yz_seller_'.$seller_id.'_refresh_token');
@@ -575,8 +580,10 @@ class YzOpenSdk
             $this->seller_id = $request->input('kdt_id');
         }
 
-        $this->access_token = $cache->get('yz_seller_' . $this->seller_id.'_access_token');
-        $this->refresh_token = $cache->get('yz_seller_' . $this->seller_id.'_refresh_token');
+        if ($this->getSellerId()) {
+            $this->access_token = $cache->get('yz_seller_' . $this->getSellerId().'_access_token');
+            $this->refresh_token = $cache->get('yz_seller_' . $this->getSellerId().'_refresh_token');
+        }
     }
 
     /**
@@ -1080,5 +1087,104 @@ class YzOpenSdk
             ];
             Log::error('request access_token failed', $context);
         }
+    }
+
+    /**
+     * @param int $page_no 当前页
+     * @param int $page_size 每月显示条数
+     * @param int|null $show_sold_out
+     * @param string $keyword 搜索关键字
+     * @param array $tag_ids 标签id列表
+     * @param array $item_ids 商品id列表
+     * @param string $version 接口版本
+     * @return array|null
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function itemList(
+        int $page_no = 1,
+        int $page_size = 100,
+        ?int $show_sold_out = null,
+        string $keyword = '',
+        array $tag_ids = [],
+        array $item_ids = [],
+        string $version = '3.0.0'
+    )
+    {
+        $method = 'youzan.item.search';
+        $params = ['page_no' => $page_no, 'page_size' => $page_size];
+        if ($show_sold_out !== null) {
+            $params['show_sold_out'] = $show_sold_out;
+        }
+        if ($keyword) {
+            $params['q'] = $keyword;
+        }
+        if (!empty($tag_ids)) {
+            $params['tag_ids'] = implode(',', $tag_ids);
+        }
+        if (!empty($item_ids)) {
+            $params['item_ids'] = implode(',', $item_ids);
+        }
+
+        return $this->post($method, $version, $params);
+    }
+
+    /**
+     * @param string $keyword
+     * @param int $page_no
+     * @param int $page_size
+     * @param int|null $show_sold_out
+     * @param string $version
+     * @return array|null
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function itemSearch(
+        string $keyword,
+        int $page_no = 1,
+        int $page_size = 100,
+        ?int $show_sold_out = null,
+        $version = '3.0.0'
+    )
+    {
+        return $this->itemList($page_no, $page_size, $show_sold_out, $keyword, [], [], $version);
+    }
+
+    /**
+     * @param array $item_ids
+     * @param int $page_no
+     * @param int $page_size
+     * @param int|null $show_sold_out
+     * @param string $version
+     * @return array|null
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function itemListByItemIds(
+        array $item_ids,
+        int $page_no = 1,
+        int $page_size = 100,
+        ?int $show_sold_out = null,
+        $version = '3.0.0'
+    )
+    {
+        return $this->itemList($page_no, $page_size, $show_sold_out, '', [], $item_ids, $version);
+    }
+
+    /**
+     * @param array $tag_ids
+     * @param int $page_no
+     * @param int $page_size
+     * @param int|null $show_sold_out
+     * @param string $version
+     * @return array|null
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    public function itemListByTagIds(
+        array $tag_ids,
+        int $page_no = 1,
+        int $page_size = 100,
+        ?int $show_sold_out = null,
+        $version = '3.0.0'
+    )
+    {
+        return $this->itemList($page_no, $page_size, $show_sold_out, '', $tag_ids, [], $version);
     }
 }
