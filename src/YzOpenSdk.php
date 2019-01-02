@@ -604,7 +604,7 @@ class YzOpenSdk
      * @param array $params
      * @param string $response_field
      * @param array $files
-     * @return array|null
+     * @return array|bool|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \Exception
      */
@@ -1043,7 +1043,7 @@ class YzOpenSdk
         $params = compact('tickets', 'orderNo', 'singleNum');
         $result = $this->post($method, $version, $params);
         if ($result) {
-            return $result['boolean'];
+            return $result;
         } else {
             return false;
         }

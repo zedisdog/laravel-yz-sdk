@@ -12,6 +12,7 @@ use Dezsidog\YzSdk\Bridge\LaravelCache;
 use Dezsidog\YzSdk\YzOpenSdk;
 use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
+use Mockery\MockInterface;
 use Youzan\Open\Client;
 
 class SdkTest extends TestCase
@@ -2669,6 +2670,21 @@ class SdkTest extends TestCase
             ],
         ]);
     }
+
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+//    public function testTicketCreate2()
+//    {
+//        /**
+//         * @var YzOpenSdk|MockInterface $sdk
+//         */
+//        $sdk = $this->mockSdk(['getToken']);
+//        $sdk->shouldReceive('getToken')->andReturn('9aba51f4a7193c4ebdcc05445ca42f0e');
+//        $result = $sdk->ticketCreate('1234567890', 'E20190102090806008800022');
+//        var_dump($result);
+//        // 9aba51f4a7193c4ebdcc05445ca42f0e
+//    }
 
     public function testTicketVerify()
     {
