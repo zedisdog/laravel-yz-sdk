@@ -14,6 +14,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
 use Mockery\MockInterface;
 use Youzan\Open\Client;
+use Youzan\Open\Token;
 
 class SdkTest extends TestCase
 {
@@ -2671,6 +2672,27 @@ class SdkTest extends TestCase
         ]);
     }
 
+    public function testTicketCreateManual()
+    {
+        $this->markTestSkipped('this will test manual');
+//        $this->cache->shouldReceive('set')->andReturn(true);
+//        $yz_token = new Token('55fa2f69ae80d0f84d', '3dbb4f48d9b5f71e9ce01487b767c117');
+//        $sdk = $this->mockSdk(['buildTypeAndKeys'], [
+//            'yz_token' => $yz_token
+//        ]);
+//        $sdk->shouldReceive('buildTypeAndKeys')->andReturn([
+//            'self',
+//            [
+//                'kdt_id' => '40151071'
+//            ]
+//        ]);
+//        var_dump($sdk->getToken());
+        $sdk = $this->mockSdk(['getToken']);
+        $sdk->shouldReceive('getToken')->andReturn('3049ab76fa6b30a3a8f50bbe559c90ba');
+        $result = $sdk->ticketCreate('test-ticket', 'E20190118105039008800047');
+        $this->assertTrue($result);
+    }
+
     public function testTicketVerify()
     {
         $sdk = $this->mockSdk(['post']);
@@ -2684,6 +2706,22 @@ class SdkTest extends TestCase
             'num' => 1,
             'historyNum' => 1,
             'singleLeftNum' => 0
+        ]);
+        $this->assertTrue($result);
+    }
+
+    public function testTicketVerifyManual()
+    {
+        $this->markTestSkipped('this will test manual');
+        $sdk = $this->mockSdk(['getToken']);
+        $sdk->shouldReceive('getToken')->andReturn('3049ab76fa6b30a3a8f50bbe559c90ba');
+        $result = $sdk->ticketVerify([
+            'tickets' => 'test-ticket',
+            'orderNo' => 'E20190118105039008800047',
+            'verifySerial' => '0987654321',
+            'num' => 1,
+            'historyNum' => 1,
+//            'singleLeftNum' => 0
         ]);
         $this->assertTrue($result);
     }

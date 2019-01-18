@@ -120,6 +120,11 @@ class YzOpenSdk
         }
     }
 
+    protected function getSellerId()
+    {
+        return $this->seller_id;
+    }
+
     protected function setRequest($request)
     {
         if ($request instanceof ServerRequestInterface) {
@@ -225,12 +230,12 @@ class YzOpenSdk
                 $this->access_token = $this->origin_data['access_token'];
                 if ($config->get('yz.multi_seller')) {
                     $this->seller_id = $this->discoverySellerId();
-                    $cache->set('yz_seller_' . $this->seller_id . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
+                    $cache->set('yz_seller_' . $this->getSellerId() . '_refresh_token', $this->refresh_token, 60 * 24 * 28);
                 } else {
                     $this->seller_id = $keys['kdt_id'];
                 }
 
-                $cache->set('yz_seller_' . $this->seller_id . '_access_token', $this->access_token, $this->origin_data['expires_in']/60);
+                $cache->set('yz_seller_' . $this->getSellerId() . '_access_token', $this->access_token, $this->origin_data['expires_in']/60);
 
                 return $this->origin_data['access_token'];
             } else {
@@ -505,7 +510,7 @@ class YzOpenSdk
     public function hasToken($seller_id = null): bool
     {
         if (!$seller_id) {
-            $seller_id = $this->seller_id;
+            $seller_id = $this->getSellerId();
         }
 
         return $this->cache->has('yz_seller_'.$seller_id.'_refresh_token');
@@ -575,8 +580,10 @@ class YzOpenSdk
             $this->seller_id = $request->input('kdt_id');
         }
 
-        $this->access_token = $cache->get('yz_seller_' . $this->seller_id.'_access_token');
-        $this->refresh_token = $cache->get('yz_seller_' . $this->seller_id.'_refresh_token');
+        if ($this->getSellerId()) {
+            $this->access_token = $cache->get('yz_seller_' . $this->getSellerId().'_access_token');
+            $this->refresh_token = $cache->get('yz_seller_' . $this->getSellerId().'_refresh_token');
+        }
     }
 
     /**
@@ -604,7 +611,7 @@ class YzOpenSdk
      * @param array $params
      * @param string $response_field
      * @param array $files
-     * @return array|null
+     * @return array|bool|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \Exception
      */
@@ -1041,9 +1048,12 @@ class YzOpenSdk
     {
         $method = 'youzan.ebiz.external.ticket.create';
         $params = compact('tickets', 'orderNo', 'singleNum');
+        /**
+         * @var bool $result
+         */
         $result = $this->post($method, $version, $params);
         if ($result) {
-            return $result['boolean'];
+            return $result;
         } else {
             return false;
         }
@@ -1062,9 +1072,12 @@ class YzOpenSdk
             throw new \LogicException('fields [tickets],[orderNo] are required');
         }
         $method = 'youzan.ebiz.external.ticket.verify';
+        /**
+         * @var bool $result
+         */
         $result = $this->post($method, $version, $params);
         if ($result) {
-            return $result['boolean'];
+            return $result;
         } else {
             return false;
         }
@@ -1078,7 +1091,7 @@ class YzOpenSdk
                 'type' => $type,
                 'keys' => $keys
             ];
-            Log::error('request access_token failed', $context);
+            $this->log->error('request access_token failed', $context);
         }
     }
 
