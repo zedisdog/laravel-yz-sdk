@@ -104,7 +104,9 @@ class LaravelCache implements CacheInterface
     {
         if ($this->isTagable()) {
             [$tag, $key] = $this->parseTagAndKey($key);
-            return $this->laravelStore->tags(implode('_', $tag))->delete(implode('_', $key));
+            if (is_array($tag) && is_array($key)) {
+                return $this->laravelStore->tags(implode('_', $tag))->delete(implode('_', $key));
+            }
         } else {
             return $this->laravelStore->delete($key);
         }
