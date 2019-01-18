@@ -1048,9 +1048,12 @@ class YzOpenSdk
     {
         $method = 'youzan.ebiz.external.ticket.create';
         $params = compact('tickets', 'orderNo', 'singleNum');
+        /**
+         * @var bool $result
+         */
         $result = $this->post($method, $version, $params);
         if ($result) {
-            return $result['boolean'];
+            return $result;
         } else {
             return false;
         }
@@ -1069,9 +1072,12 @@ class YzOpenSdk
             throw new \LogicException('fields [tickets],[orderNo] are required');
         }
         $method = 'youzan.ebiz.external.ticket.verify';
+        /**
+         * @var bool $result
+         */
         $result = $this->post($method, $version, $params);
         if ($result) {
-            return $result['boolean'];
+            return $result;
         } else {
             return false;
         }
@@ -1085,7 +1091,7 @@ class YzOpenSdk
                 'type' => $type,
                 'keys' => $keys
             ];
-            Log::error('request access_token failed', $context);
+            $this->log->error('request access_token failed', $context);
         }
     }
 

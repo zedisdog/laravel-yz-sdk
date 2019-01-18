@@ -88,6 +88,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
         $this->log = \Mockery::mock(LogManager::class);
         $this->log->shouldReceive('info')->andReturn(true);
+        $this->log->shouldReceive('error')->andReturn(true);
     }
 
     /**
