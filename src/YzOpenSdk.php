@@ -611,7 +611,7 @@ class YzOpenSdk
      * @param array $params
      * @param string $response_field
      * @param array $files
-     * @return array|null
+     * @return array|bool|null
      * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \Exception
      */
