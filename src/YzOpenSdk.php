@@ -617,11 +617,12 @@ class YzOpenSdk
      */
     protected function post(string $method, string $version, array $params = [], string $response_field = 'response', array $files = [])
     {
-        $client = new Client($this->getToken());
-        $result = $this->checkError($client->post($method, $version, $params, $files));
-
         $logger = $this->log;
+        $client = new Client($this->getToken());
+        $logger->info('yz_api_params', ['method' => $method,'params' => $params,'response_field' => $response_field]);
+        $result = $client->post($method, $version, $params, $files);
         $logger->info('yz_api_call', ['method' => $method,'params' => $params,'response_field' => $response_field, 'result' => $result]);
+        $result = $this->checkError($result);
 
         return $result ? array_get($result, $response_field) : $result;
     }
