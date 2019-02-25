@@ -83,6 +83,8 @@ class YzOpenSdk
         135500009
     ];
 
+    protected $dont_report_all = false;
+
     /**
      * YzOpenSdk constructor.
      * @param Repository $config
@@ -120,6 +122,11 @@ class YzOpenSdk
         }
     }
 
+    public function dontReportAll()
+    {
+        $this->dont_report_all = true;
+        return $this;
+    }
     protected function getSellerId()
     {
         return $this->seller_id;
@@ -595,7 +602,7 @@ class YzOpenSdk
     private function checkError(array $result): ?array
     {
         if (isset($result['error_response'])) {
-            if (in_array($result['error_response']['code'], $this->dont_report)) {
+            if ($this->dont_report_all || in_array($result['error_response']['code'], $this->dont_report)) {
                 return null;
             } else {
                 throw new \RuntimeException(json_encode($result));
