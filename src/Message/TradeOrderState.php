@@ -86,7 +86,11 @@ class TradeOrderState extends BaseMessage
 
     public function setMsgAttribute($value)
     {
-        $this->attributes['msg'] = json_decode(urldecode($value),true);
+        if (is_array($value)) {
+            $this->attributes['msg'] = $value;
+        } else {
+            $this->attributes['msg'] = json_decode(urldecode($value),true);
+        }
     }
 
     public function getTidAttribute()
