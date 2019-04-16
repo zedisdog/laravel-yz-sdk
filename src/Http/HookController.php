@@ -27,10 +27,13 @@ class HookController extends Controller
                 event(new ReceivedYzMessage($message));
             }
         }
+
+        $ret = '{"code":0,"msg":"success"}';
         if (\App::environment('testing')) {
-            return '{"code":0,"msg":"success"}';
+            return $ret;
         } else {
-            die('{"code":0,"msg":"success"}');
+            $log->info('yz-message-return', [$ret]);
+            die($ret);
         }
     }
 }
