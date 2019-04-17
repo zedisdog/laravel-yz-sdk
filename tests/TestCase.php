@@ -15,7 +15,7 @@ use Illuminate\Log\LogManager;
 use Illuminate\Routing\UrlGenerator;
 use Mockery\Mock;
 use Mockery\MockInterface;
-use Youzan\Open\Token;
+use Old\Open\Token;
 
 class TestCase extends \PHPUnit\Framework\TestCase
 {

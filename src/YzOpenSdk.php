@@ -20,8 +20,8 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use Youzan\Open\Client;
-use Youzan\Open\Token as YzToken;
+use Old\Open\Client;
+use Old\Open\Token as YzToken;
 
 class YzOpenSdk
 {

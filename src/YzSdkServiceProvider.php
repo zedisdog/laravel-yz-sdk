@@ -15,7 +15,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
-use Youzan\Open\Token;
+use Old\Open\Token;
 
 class YzSdkServiceProvider extends ServiceProvider
 {
