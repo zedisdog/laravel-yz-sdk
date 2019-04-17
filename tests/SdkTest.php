@@ -13,8 +13,8 @@ use Dezsidog\YzSdk\YzOpenSdk;
 use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
 use Mockery\MockInterface;
-use Old\Open\Client;
-use Old\Open\Token;
+use Dezsidog\YzSdk\Old\Client;
+use Dezsidog\YzSdk\Old\Token;
 
 class SdkTest extends TestCase
 {

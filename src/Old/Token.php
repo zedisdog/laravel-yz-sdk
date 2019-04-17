@@ -1,6 +1,6 @@
 <?php
 
-namespace Old\Open;
+namespace Dezsidog\YzSdk\Old;
 
 use Exception;
 

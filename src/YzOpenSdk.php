@@ -15,13 +15,12 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Log\LogManager;
 use Illuminate\Routing\UrlGenerator;
-use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use Old\Open\Client;
-use Old\Open\Token as YzToken;
+use Dezsidog\YzSdk\Old\Client;
+use Dezsidog\YzSdk\Old\Token as YzToken;
 
 class YzOpenSdk
 {
