@@ -26,7 +26,7 @@ class YzSdkServiceProvider extends ServiceProvider
              * @var Repository $config
              */
             $config = $app->make('config');
-            return new YzOpenSdk(
+            $sdk = new YzOpenSdk(
                 $config,
                 $app->make('request'),
                 new Token($config->get('yz.client_id'), $config->get('yz.client_secret')),
@@ -34,6 +34,10 @@ class YzSdkServiceProvider extends ServiceProvider
                 new LaravelCache($app->make('cache')->getStore()),
                 $app->make('log')
             );
+            if (!$config->get('yz.multi_seller')) {
+                $sdk->setSellerId($config->get('yz.kdt_id'));
+            }
+            return $sdk;
         });
     }
 
