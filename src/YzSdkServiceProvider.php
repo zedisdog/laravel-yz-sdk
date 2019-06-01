@@ -21,7 +21,7 @@ class YzSdkServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->singleton(YzOpenSdk::class,function(Application $app){
+        $this->app->bind(YzOpenSdk::class,function(Application $app){
             /**
              * @var Repository $config
              */
