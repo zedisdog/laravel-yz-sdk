@@ -241,7 +241,7 @@ class YzOpenSdk
                     $this->seller_id = $keys['kdt_id'];
                 }
 
-                $cache->set('yz_seller_' . $this->getSellerId() . '_access_token', $this->access_token, $this->origin_data['expires_in']/60);
+                $cache->set('yz_seller_' . $this->getSellerId() . '_access_token', $this->access_token, ($this->origin_data['expires_in']/60) - 60);
 
                 return $this->origin_data['access_token'];
             } else {
