@@ -15,13 +15,12 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Log\LogManager;
 use Illuminate\Routing\UrlGenerator;
-use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use Youzan\Open\Client;
-use Youzan\Open\Token as YzToken;
+use Dezsidog\YzSdk\Old\Client;
+use Dezsidog\YzSdk\Old\Token as YzToken;
 
 class YzOpenSdk
 {
@@ -83,6 +82,8 @@ class YzOpenSdk
         135500009
     ];
 
+    protected $dont_report_all = false;
+
     /**
      * YzOpenSdk constructor.
      * @param Repository $config
@@ -120,6 +121,11 @@ class YzOpenSdk
         }
     }
 
+    public function dontReportAll()
+    {
+        $this->dont_report_all = true;
+        return $this;
+    }
     protected function getSellerId()
     {
         return $this->seller_id;
@@ -235,7 +241,7 @@ class YzOpenSdk
                     $this->seller_id = $keys['kdt_id'];
                 }
 
-                $cache->set('yz_seller_' . $this->getSellerId() . '_access_token', $this->access_token, $this->origin_data['expires_in']/60);
+                $cache->set('yz_seller_' . $this->getSellerId() . '_access_token', $this->access_token, ($this->origin_data['expires_in']/60) - 60);
 
                 return $this->origin_data['access_token'];
             } else {
@@ -595,7 +601,7 @@ class YzOpenSdk
     private function checkError(array $result): ?array
     {
         if (isset($result['error_response'])) {
-            if (in_array($result['error_response']['code'], $this->dont_report)) {
+            if ($this->dont_report_all || in_array($result['error_response']['code'], $this->dont_report)) {
                 return null;
             } else {
                 throw new \RuntimeException(json_encode($result));
@@ -617,11 +623,12 @@ class YzOpenSdk
      */
     protected function post(string $method, string $version, array $params = [], string $response_field = 'response', array $files = [])
     {
-        $client = new Client($this->getToken());
-        $result = $this->checkError($client->post($method, $version, $params, $files));
-
         $logger = $this->log;
+        $client = new Client($this->getToken());
+        $logger->info('yz_api_params', ['method' => $method,'params' => $params,'response_field' => $response_field]);
+        $result = $client->post($method, $version, $params, $files);
         $logger->info('yz_api_call', ['method' => $method,'params' => $params,'response_field' => $response_field, 'result' => $result]);
+        $result = $this->checkError($result);
 
         return $result ? array_get($result, $response_field) : $result;
     }

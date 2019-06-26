@@ -15,18 +15,18 @@ use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
-use Youzan\Open\Token;
+use Dezsidog\YzSdk\Old\Token;
 
 class YzSdkServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->singleton(YzOpenSdk::class,function(Application $app){
+        $this->app->bind(YzOpenSdk::class,function(Application $app){
             /**
              * @var Repository $config
              */
             $config = $app->make('config');
-            return new YzOpenSdk(
+            $sdk = new YzOpenSdk(
                 $config,
                 $app->make('request'),
                 new Token($config->get('yz.client_id'), $config->get('yz.client_secret')),
@@ -34,6 +34,10 @@ class YzSdkServiceProvider extends ServiceProvider
                 new LaravelCache($app->make('cache')->getStore()),
                 $app->make('log')
             );
+            if (!$config->get('yz.multi_seller')) {
+                $sdk->setSellerId($config->get('yz.kdt_id'));
+            }
+            return $sdk;
         });
     }
 

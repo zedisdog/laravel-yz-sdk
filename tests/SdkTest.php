@@ -13,8 +13,8 @@ use Dezsidog\YzSdk\YzOpenSdk;
 use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
 use Mockery\MockInterface;
-use Youzan\Open\Client;
-use Youzan\Open\Token;
+use Dezsidog\YzSdk\Old\Client;
+use Dezsidog\YzSdk\Old\Token;
 
 class SdkTest extends TestCase
 {
@@ -2656,9 +2656,7 @@ class SdkTest extends TestCase
     public function testTicketCreate()
     {
         $sdk = $this->mockSdk(['post']);
-        $sdk->shouldReceive('post')->andReturn([
-            "boolean" => true
-        ]);
+        $sdk->shouldReceive('post')->andReturn(true);
         $result = $sdk->ticketCreate('test-ticket', '1234567890');
         $this->assertTrue($result);
         $sdk->shouldHaveReceived('post', [
@@ -2696,9 +2694,7 @@ class SdkTest extends TestCase
     public function testTicketVerify()
     {
         $sdk = $this->mockSdk(['post']);
-        $sdk->shouldReceive('post')->andReturn([
-            "boolean" => true
-        ]);
+        $sdk->shouldReceive('post')->andReturn(true);
         $result = $sdk->ticketVerify([
             'tickets' => 'test-ticket',
             'orderNo' => '1234567890',
